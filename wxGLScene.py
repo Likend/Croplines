@@ -66,9 +66,9 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         self.Bind(wx.EVT_PAINT, self.onPaint)   # 绑定重绘事件
 
         # keyboard event
-        self.is_D_down = False
-        self.is_M_down = False
-        self.is_N_down = False
+        self.is_D_key_down = False
+        self.is_DOWN_key_down = False
+        self.is_UP_key_down = False
 
         self.initGL()      # 画布初始化
 
@@ -397,7 +397,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         if not self.checkCoordInside(x, y):
             return
         # print("onRightUp", self.is_D_down)
-        if self.is_D_down:
+        if self.is_D_key_down:
             win_y_max = mpos.y + DELETE_LINE_FILTER  # 删除横线的最大纵坐标
             win_y_min = mpos.y - DELETE_LINE_FILTER  # 删除横线的最小纵坐标
             for i in range(len(self.lines_ls)):
