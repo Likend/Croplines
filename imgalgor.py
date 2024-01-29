@@ -9,7 +9,9 @@ def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5, expand_size: 
     expand_size: 留边空白大小
 
     # return: 
-    ((left ,top), (right, botton))
+    ((left ,top), (right, botton)).
+    
+    If the image is empty, return ((-1, -1), (-1, -1)).
     '''
     height, width = image.shape[0:2]
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -17,6 +19,9 @@ def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5, expand_size: 
                             maxval=255, type=cv2.THRESH_BINARY_INV)[1]
     contours = cv2.findContours(
         img_bin, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_NONE)[0]
+
+    if len(contour) == 0:
+        return ((-1, -1), (-1, -1))
 
     min_x_ls = []
     min_y_ls = []

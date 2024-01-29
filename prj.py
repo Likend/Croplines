@@ -123,6 +123,17 @@ class Prj:
     def line_lists(self, value: list[list[int]]):
         self.data['line_lists'] = value
 
+    def line_listsAppend(self, page_index: int, line_data: int):
+        '''将line_data数据添加到data["line_lists"][page_index]中
+        line_data为线在图像上的纵坐标（以左上角为远点，图片像素为单位）
+        '''
+        self.line_lists[page_index].append(line_data)
+        self.is_change = True
+
+    def line_listsPop(self, page_index: int, line_index: int):
+        self.line_lists[page_index].pop(line_index)
+        self.is_change = True
+
     def getLineList(self, index: int) -> list[int]:
         return self.line_lists[index]
 
@@ -133,13 +144,6 @@ class Prj:
     @property
     def output_dir(self) -> str:
         return f'{self.dir}\\{self.output_folder}'
-
-    def add_line_data(self, page_index: int, line_data: int):
-        '''将line_data数据添加到data["line_lists"][page_index]中
-        line_data为线在图像上的纵坐标（以左上角为远点，图片像素为单位）
-        '''
-        self.line_lists[page_index].append(line_data)
-        self.is_change = True
 
     def save(self):
         with open(f'{self.dir}/croplines.cpln', 'wb') as file:
@@ -181,10 +185,12 @@ class Prj:
     def calcSelectArea(self, pageindex: int) -> list[tuple[tuple[int, int], tuple[int, int]]]:
         '''
         [((left ,top), (right, botton)), ...]
+        
+        If a certian image is empty, the relevant tuple is ((-1, -1), (-1, -1))
         '''
-        ret = []
         if self.pic is None:
             return
+
         # 避免重复加载
         if pageindex == self.curr_page:
             pic = self.pic
@@ -194,10 +200,10 @@ class Prj:
         crop_lines = self.getLineList(pageindex) + [pic.shape[0]]
         crop_lines.sort()
         line_prev = 0
+        ret = []
         for line_curr in crop_lines:
             pic_crop = cv2.copyMakeBorder(
                 pic[line_prev:line_curr, :], top=line_prev, bottom=0, left=0, right=0, borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
-            cv2.imshow("paset", pic_crop)
             cv2.waitKey(0)
             ret.append(selectArea(pic_crop))
             line_prev = line_curr
@@ -222,6 +228,8 @@ class Prj:
         cout = 1
         for select in selects:
             ((l, t), (r, b)) = select
+            if l == -1 or r == -1 or r == -1 or b == -1:
+                continue
             pic_crop = pic[t:b, l:r]
             pic_border = cv2.copyMakeBorder(pic_crop,
                                             self.config_border, self.config_border,

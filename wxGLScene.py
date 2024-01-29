@@ -54,9 +54,14 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         self.draw_mouse_y = None
 
         self.prj = None
-        self.lines_canvas: list[float] = []
-        self.lines_ls: list[int] = []
+        self.canvas_lines: list[float] = []
+        self.prj_curr_lines_ls: list[int] = []
+        '''The line list of current page from Prj, please do not directly act on it.'''
+
         self.set_page_handler: Callable[[int], Any] | None = None
+        '''The call back function of `self.setPage`, activated only when using `self.bindPrj`'''
+
+        self.canvas_select_areas = []
 
         self.pic = None
         self.pic_textrue = None
@@ -195,39 +200,35 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         glVertex2f(-1.0, 1.0)
         glEnd()
 
-        # glDisable(GL_BLEND)
-        # glLineWidth(5)
-        # glBegin(GL_LINES)                    # 开始绘制线段（世界坐标系）
-        # # 绘制x轴
-        # glColor3f(0, 4, 0)
-        # glVertex3f(-1, 0.0, 0.0)           # 设置x轴顶点（x轴负方向）
-        # glVertex3f(1, 0.0, 0.0)            # 设置x轴顶点（x轴正方向）
-        # # 以绿色绘制y轴
-        # glColor3f(4, 0, 0)        # 设置当前颜色为绿色不透明
-        # glVertex3f(0.0, -1, 0.0)           # 设置y轴顶点（y轴负方向）
-        # glVertex3f(0.0, 1, 0.0)            # 设置y轴顶点（y轴正方向）
-        # glColor4f(1, 1, 1, 0)
-        # glEnd()
-
-        # if self.draw_mouse:
-        #     glPointSize(6.0)
-        #     glBegin(GL_POINTS)
-        #     glVertex3d(self.draw_mouse_x, self.draw_mouse_y, 0.0)
-        #     glEnd()
         glLineWidth(3)
         glBegin(GL_LINES)
 
         # 绘制鼠标所在的水平横线
         if self.draw_mouse_x is not None and self.draw_mouse_y is not None:
             glColor3f(0, 1, 0)
-            glVertex3f(-1, self.draw_mouse_y, 0)
-            glVertex3f(1, self.draw_mouse_y, 0)
+            glVertex2f(-1, self.draw_mouse_y)
+            glVertex2f(1, self.draw_mouse_y)
 
         # 绘制已储存的横线
         glColor(0, 0, 1)
-        for line in self.lines_canvas:
-            glVertex3f(-1, line, 0)
-            glVertex3f(1, line, 0)
+        for line in self.canvas_lines:
+            glVertex2f(-1, line)
+            glVertex2f(1, line)
+
+        # 绘制选择区域
+        glColor(1, 0, 0)
+        for ((l, t), (r, b)) in self.canvas_select_areas:
+            glVertex2f(l, t)
+            glVertex2f(r, t)
+
+            glVertex2f(r, t)
+            glVertex2f(r, b)
+
+            glVertex2f(r, b)
+            glVertex2f(l, b)
+
+            glVertex2f(l, b)
+            glVertex2f(l, t)
 
         # 颜色恢复
         glColor3f(1, 1, 1)
@@ -400,17 +401,18 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         if self.is_D_key_down:
             win_y_max = mpos.y + DELETE_LINE_FILTER  # 删除横线的最大纵坐标
             win_y_min = mpos.y - DELETE_LINE_FILTER  # 删除横线的最小纵坐标
-            for i in range(len(self.lines_ls)):
-                _, win_y = self.getWinCoord(0, self.lines_canvas[i])
+            for i in range(len(self.prj_curr_lines_ls)):
+                _, win_y = self.getWinCoord(0, self.canvas_lines[i])
                 if win_y_min <= win_y <= win_y_max:
-                    self.lines_ls.pop(i)
-                    self.lines_canvas.pop(i)
-                    self.prj.is_change = True
+                    self.prj.line_listsPop(self.prj.curr_page, i)
+                    self.canvas_lines.pop(i)
+                    self.setSelectAreas()
                     break
         else:
-            self.lines_canvas.append(y)
-            self.lines_ls.append(int(self.pic.shape[0] * (1-y) / 2 + 0.5))
-            self.prj.is_change = True
+            self.canvas_lines.append(y)
+            self.prj.line_listsAppend(self.prj.curr_page,
+                                      int(self.pic.shape[0] * (1-y) / 2 + 0.5))
+            self.setSelectAreas()
 
     def onMouseMotion(self, event: wx.MouseEvent):
         """响应鼠标移动事件 拖拽图片
@@ -470,7 +472,6 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
                     - self.getWorldCoord(0, pos_1)[1]
                 self.move(0, dy)
 
-
     def bindPrj(self, prj: Prj, set_page_handler: Callable[[int], Any]):
         self.prj = prj
         self.setPage(0)
@@ -486,6 +487,15 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         self.Bind(wx.EVT_SCROLLWIN, self.onScroll)
         # self.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onScroll)
 
+    def setSelectAreas(self):
+        tmp = self.prj.calcSelectArea(self.prj.curr_page)
+        self.canvas_select_areas = []
+        for ((l, t), (r, b)) in tmp:
+            if l == -1 or r == -1 or r == -1 or b == -1:
+                continue
+            self.canvas_select_areas.append(((2*l/self.pic.shape[1] - 1, 1 - 2*t/self.pic.shape[0]),
+                                             (2*r/self.pic.shape[1] - 1, 1 - 2*b/self.pic.shape[0])))
+
     def setPage(self, index):
         '''显示第index页
         目前无法异步调用'''
@@ -494,10 +504,10 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         __pic = self.prj.getPage(index)
         self.pic = cv2.flip(__pic, 0)
 
-        self.lines_ls = self.prj.getLineList(index)
-        self.lines_canvas = [1 - 2*line/self.pic.shape[0]
-                             for line in self.lines_ls]
-
+        self.prj_curr_lines_ls = self.prj.getLineList(index)
+        self.canvas_lines = [1 - 2*line/self.pic.shape[0]
+                             for line in self.prj_curr_lines_ls]
+        self.setSelectAreas()
         self.setTextrue()
         self.Refresh(False)
         if self.set_page_handler is not None:
