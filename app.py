@@ -136,7 +136,6 @@ class MainWindow(wxUI.MainWindow):
         event.Skip()
 
     def onClickPageList(self, event: wx.CommandEvent) -> None:
-        print(type(event))
         self.canvas.setPage(event.Selection)
         self.SetFocus()
         event.Skip()
@@ -146,7 +145,6 @@ class MainWindow(wxUI.MainWindow):
         event.Skip()
 
     def onClickBtnCropCurrPage(self, event: wx.CommandEvent) -> None:
-        print(type(event))
         thread = Thread(target=self.prj.cropPage,
                         kwargs={"index": self.prj.curr_page,
                                 "finish_callback": lambda: self.SetStatusText(f"第 {self.prj.curr_page+1} 页裁剪完成！")})

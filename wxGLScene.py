@@ -102,20 +102,20 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
 
         self.SetCurrent(self.context)
 
-        # # 设置画布背景色
-        # glClearColor(0, 0, 0, 0)
-        # # 开启深度测试，实现遮挡关系
-        # glEnable(GL_DEPTH_TEST)
-        # glDepthFunc(GL_LEQUAL)                                      # 设置深度测试函数
-        # # GL_SMOOTH(光滑着色)/GL_FLAT(恒定着色)
-        # glShadeModel(GL_SMOOTH)
-        # glEnable(GL_BLEND)                                          # 开启混合
-        # glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)           # 设置混合函数
-        # glEnable(GL_ALPHA_TEST)                                     # 启用Alpha测试
-        # # 设置Alpha测试条件为大于0.05则通过
-        # glAlphaFunc(GL_GREATER, 0.05)
-        # # 设置逆时针索引为正面（GL_CCW/GL_CW）
-        # glFrontFace(GL_CW)
+        # 设置画布背景色
+        glClearColor(0, 0, 0, 0)
+        # 开启深度测试，实现遮挡关系
+        glEnable(GL_DEPTH_TEST)
+        glDepthFunc(GL_LEQUAL)                                      # 设置深度测试函数
+        # GL_SMOOTH(光滑着色)/GL_FLAT(恒定着色)
+        glShadeModel(GL_SMOOTH)
+        glEnable(GL_BLEND)                                          # 开启混合
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)           # 设置混合函数
+        glEnable(GL_ALPHA_TEST)                                     # 启用Alpha测试
+        # 设置Alpha测试条件为大于0.05则通过
+        glAlphaFunc(GL_GREATER, 0.05)
+        # 设置逆时针索引为正面（GL_CCW/GL_CW）
+        glFrontFace(GL_CW)
         glEnable(GL_LINE_SMOOTH)                                    # 开启线段反走样
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_TEXTURE_2D)
@@ -199,38 +199,44 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         glVertex2f(-1.0, 1.0)
         glEnd()
 
-        glLineWidth(3)
-        glBegin(GL_LINES)
+        # 绘制选择区域
+        for ((l, t), (r, b)) in self.canvas_select_areas:
+            # glVertex2f(l, t)
+            # glVertex2f(r, t)
 
+            # glVertex2f(r, t)
+            # glVertex2f(r, b)
+
+            # glVertex2f(r, b)
+            # glVertex2f(l, b)
+
+            # glVertex2f(l, b)
+            # glVertex2f(l, t)
+            glBegin(GL_QUADS)
+            glColor4f(0, 0.5, 0, 0.2)
+
+            glVertex2f(l, t)
+            glVertex2f(r, t)
+            glVertex2f(r, b)
+            glVertex2f(l, b)
+            glEnd()
+
+        glLineWidth(4)
+        glBegin(GL_LINES)
         # 绘制鼠标所在的水平横线
         if self.draw_mouse_x is not None and self.draw_mouse_y is not None:
-            glColor3f(0, 1, 0)
+            glColor4f(0, 0, 1, 0.8)
             glVertex2f(-1, self.draw_mouse_y)
             glVertex2f(1, self.draw_mouse_y)
 
         # 绘制已储存的横线
-        glColor(0, 0, 1)
+        glColor4f(0, 1, 0, 0.8)
         for line in self.canvas_lines:
             glVertex2f(-1, line)
             glVertex2f(1, line)
 
-        # 绘制选择区域
-        glColor(1, 0, 0)
-        for ((l, t), (r, b)) in self.canvas_select_areas:
-            glVertex2f(l, t)
-            glVertex2f(r, t)
-
-            glVertex2f(r, t)
-            glVertex2f(r, b)
-
-            glVertex2f(r, b)
-            glVertex2f(l, b)
-
-            glVertex2f(l, b)
-            glVertex2f(l, t)
-
         # 颜色恢复
-        glColor3f(1, 1, 1)
+        glColor4f(1, 1, 1, 1)
         glEnd()
 
     @overload
