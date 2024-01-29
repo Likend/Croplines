@@ -55,7 +55,7 @@ class PrjFileFormatError(Exception):
 class PrjData(TypedDict):
     total_num: int
     img_files: list[str]
-    line_lists: list[list[float]]
+    line_lists: list[list[int]]
 
 
 class Prj:
@@ -132,7 +132,7 @@ class Prj:
         '''将line_data数据添加到data["line_lists"][page_index]中
         line_data为线在图像上的纵坐标（以左上角为远点，图片像素为单位）
         '''
-        self.data["line_lists"][page_index].append(line_data)
+        self.line_lists[page_index].append(line_data)
         self.is_change = True
 
     def save(self):
@@ -172,7 +172,7 @@ class Prj:
         self.pic = self.__getPageNotCurr(index)
         return self.pic
 
-    def cropPage(self, index, finish_callback: Callable[[], Any] = None):
+    def cropPage(self, index, finish_callback: Callable[[], Any] | None = None):
         '''裁剪某一页'''
         if self.pic is None:
             return
@@ -203,8 +203,8 @@ class Prj:
             finish_callback()
 
     def cropAllPage(self,
-                    finish_callback: Callable[[], Any] = None,
-                    processing_callback: Callable[[int], Any] = None):
+                    finish_callback: Callable[[], Any] | None = None,
+                    processing_callback: Callable[[int], Any] | None = None):
         for i in range(self.total_num):
             if processing_callback is not None:
                 processing_callback(i)
