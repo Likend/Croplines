@@ -36,8 +36,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
                                    glcanvas.WX_GL_DOUBLEBUFFER | glcanvas.WX_GL_DEPTH_SIZE | wx.VSCROLL | wx.HSCROLL)
 
         self.parent = parent  # 父级窗口对象
-        self.SetFocus()
-        # self.CaptureMouse()
+
         self.AlwaysShowScrollbars()  # 滑动条始终可见
         self.SetScrollbar(wx.HORIZONTAL, position=-1,
                           thumbSize=-1, range=-1)  # 默认禁用滑动条
@@ -491,8 +490,6 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         tmp = self.prj.calcSelectArea(self.prj.curr_page)
         self.canvas_select_areas = []
         for ((l, t), (r, b)) in tmp:
-            if l == -1 or r == -1 or r == -1 or b == -1:
-                continue
             self.canvas_select_areas.append(((2*l/self.pic.shape[1] - 1, 1 - 2*t/self.pic.shape[0]),
                                              (2*r/self.pic.shape[1] - 1, 1 - 2*b/self.pic.shape[0])))
 

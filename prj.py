@@ -185,8 +185,6 @@ class Prj:
     def calcSelectArea(self, pageindex: int) -> list[tuple[tuple[int, int], tuple[int, int]]]:
         '''
         [((left ,top), (right, botton)), ...]
-        
-        If a certian image is empty, the relevant tuple is ((-1, -1), (-1, -1))
         '''
         if self.pic is None:
             return
@@ -202,10 +200,15 @@ class Prj:
         line_prev = 0
         ret = []
         for line_curr in crop_lines:
-            pic_crop = cv2.copyMakeBorder(
-                pic[line_prev:line_curr, :], top=line_prev, bottom=0, left=0, right=0, borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
-            cv2.waitKey(0)
-            ret.append(selectArea(pic_crop))
+            # pic_crop = cv2.copyMakeBorder(
+            #     pic[line_prev:line_curr, :], top=line_prev, bottom=0, left=0, right=0, borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
+            pic_crop = pic[line_prev:line_curr, :]
+            ((l, t), (r, b)) = selectArea(pic_crop)
+            if l == -1 or t == -1 or r == -1 or b == -1:
+                continue
+            t += line_prev
+            b += line_prev
+            ret.append(((l, t), (r, b)))
             line_prev = line_curr
 
         return ret
@@ -228,8 +231,6 @@ class Prj:
         cout = 1
         for select in selects:
             ((l, t), (r, b)) = select
-            if l == -1 or r == -1 or r == -1 or b == -1:
-                continue
             pic_crop = pic[t:b, l:r]
             pic_border = cv2.copyMakeBorder(pic_crop,
                                             self.config_border, self.config_border,

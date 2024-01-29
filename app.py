@@ -205,6 +205,7 @@ class MainWindow(wxUI.MainWindow):
                         self.canvas.setPage(self.prj.curr_page-1)
 
     def onKeyUp(self, event: wx.KeyEvent):
+        # print(event.KeyCode)
         match event.KeyCode:
             case 68:
                 self.canvas.is_D_key_down = False
