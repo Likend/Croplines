@@ -3,6 +3,7 @@ import cv2
 
 def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5, expand_size: int = 0) -> tuple[tuple[int, int], tuple[int, int]]:
     '''
+    自动选择黑色像素区域
     # para:
     filer_pix_size: 忽略黑像素的大小
     expand_size: 留边空白大小

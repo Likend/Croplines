@@ -6,6 +6,8 @@ from collections.abc import Callable
 import cv2
 import numpy as np
 
+from imgalgor import selectArea
+
 
 def cv_imread(filepath: str):
     '''解决opencv不能读取中文的bug'''
@@ -68,6 +70,10 @@ class Prj:
         self.pic = None
 
         self.output_folder: str = "out"
+
+        # config
+        self.config_border: int = 10
+        self.config_filer_pix_size: int = 5
 
     def loadImgFromDir(self, prj_dir: str) -> None:
         self.dir = prj_dir
@@ -172,10 +178,37 @@ class Prj:
         self.pic = self.__getPageNotCurr(index)
         return self.pic
 
+    def calcSelectArea(self, pageindex: int) -> list[tuple[tuple[int, int], tuple[int, int]]]:
+        '''
+        [((left ,top), (right, botton)), ...]
+        '''
+        ret = []
+        if self.pic is None:
+            return
+        # 避免重复加载
+        if pageindex == self.curr_page:
+            pic = self.pic
+        else:
+            pic = self.__getPageNotCurr(pageindex)
+
+        crop_lines = self.getLineList(pageindex) + [pic.shape[0]]
+        crop_lines.sort()
+        line_prev = 0
+        for line_curr in crop_lines:
+            pic_crop = cv2.copyMakeBorder(
+                pic[line_prev:line_curr, :], top=line_prev, bottom=0, left=0, right=0, borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
+            cv2.imshow("paset", pic_crop)
+            cv2.waitKey(0)
+            ret.append(selectArea(pic_crop))
+            line_prev = line_curr
+
+        return ret
+
     def cropPage(self, index, finish_callback: Callable[[], Any] | None = None):
         '''裁剪某一页'''
         if self.pic is None:
             return
+
         # 避免重复加载
         if index == self.curr_page:
             pic = self.pic
@@ -185,18 +218,16 @@ class Prj:
         if not os.path.exists(self.output_dir):  # 避免报错
             os.makedirs(self.output_dir)
 
-        crop_lines = self.getLineList(index) + [pic.shape[0]]
-        crop_lines.sort()
-        line_prev = 0
+        selects = self.calcSelectArea(index)
         cout = 1
-        for line_curr in crop_lines:
-            pic_crop = pic[line_prev:line_curr, :]
-            # cv2.imshow("pic_crop", pic_crop)
-            # cv2.waitKey(0)
-            # pic_crop.tofile(
-            # f'{self.dir}\\{index+1}-{cout}.png')
-            cv2.imwrite(f"{self.output_dir}\\{index+1}-{cout}.png", pic_crop)
-            line_prev = line_curr
+        for select in selects:
+            ((l, t), (r, b)) = select
+            pic_crop = pic[t:b, l:r]
+            pic_border = cv2.copyMakeBorder(pic_crop,
+                                            self.config_border, self.config_border,
+                                            self.config_border, self.config_border,
+                                            borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
+            cv2.imwrite(f"{self.output_dir}\\{index+1}-{cout}.png", pic_border)
             cout += 1
 
         if finish_callback is not None:
