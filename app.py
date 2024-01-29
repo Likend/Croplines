@@ -44,6 +44,10 @@ class MainWindow(wxUI.MainWindow):
         self.SetFocus()
         self.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+        self.pn_page_list.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        self.pn_page_list.Bind(wx.EVT_KEY_UP, self.onKeyUp)
+        self.canvas.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
+        self.canvas.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 
         # default value
         self.prj_location = ''
@@ -71,7 +75,6 @@ class MainWindow(wxUI.MainWindow):
         if (page_index_curr == 0 or page_index_curr == -1):
             return
         self.pn_page_list.SetSelection(page_index_curr-1)
-        self.SetFocus()
         self.canvas.setPage(page_index_curr-1)
 
     def setPageNext(self):
@@ -79,7 +82,6 @@ class MainWindow(wxUI.MainWindow):
         if (page_index_curr == self.pn_page_list.GetCount()-1):
             return
         self.pn_page_list.SetSelection(page_index_curr+1)
-        self.SetFocus()
         self.canvas.setPage(page_index_curr+1)
 
     def onClickBtnLoad(self, event):
@@ -137,7 +139,6 @@ class MainWindow(wxUI.MainWindow):
 
     def onClickPageList(self, event: wx.CommandEvent) -> None:
         self.canvas.setPage(event.Selection)
-        self.SetFocus()
         event.Skip()
 
     def onClickBtnZoomPage(self, event: wx.CommandEvent) -> None:
