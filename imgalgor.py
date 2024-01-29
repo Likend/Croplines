@@ -1,11 +1,16 @@
 import cv2
 
 
-def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5) -> tuple[tuple[int, int], tuple[int, int]]:
+def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5, expand_size: int = 0) -> tuple[tuple[int, int], tuple[int, int]]:
     '''
-    return value: 
-    ((min_x,min_y), (max_x, max_y))
+    # para:
+    filer_pix_size: 忽略黑像素的大小
+    expand_size: 留边空白大小
+
+    # return: 
+    ((left ,top), (right, botton))
     '''
+    height, width = image.shape[0:2]
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     img_bin = cv2.threshold(img_gray, thresh=127,
                             maxval=255, type=cv2.THRESH_BINARY_INV)[1]
@@ -27,4 +32,18 @@ def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5) -> tuple[tupl
     min_y = min(min_y_ls)
     max_x = max(max_x_ls)
     max_y = max(max_y_ls)
-    return ((min_x, min_y), (max_x, max_y))
+
+    l = min_x-expand_size
+    r = max_x+expand_size
+    t = min_y-expand_size
+    b = max_y+expand_size
+
+    if l < 0:
+        l = 0
+    if t < 0:
+        t = 0
+    if r > width:
+        r = width
+    if b > height:
+        b = height
+    return ((l, t), (r, b))
