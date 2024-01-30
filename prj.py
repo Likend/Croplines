@@ -1,7 +1,7 @@
 import os
 import re
 import pickle
-from typing import TypedDict, Any
+from typing import TypedDict, Any, Optional
 from collections.abc import Callable
 import cv2
 import numpy as np
@@ -241,7 +241,7 @@ class Prj:
 
         return ret
 
-    def cropPage(self, index, finish_callback: Callable[[], Any] | None = None):
+    def cropPage(self, index, finish_callback: Optional[Callable[[], Any]] = None):
         '''裁剪某一页'''
         if self.pic is None:
             return
@@ -271,8 +271,8 @@ class Prj:
             finish_callback()
 
     def cropAllPage(self,
-                    finish_callback: Callable[[], Any] | None = None,
-                    processing_callback: Callable[[int], Any] | None = None):
+                    finish_callback: Optional[Callable[[], Any]] = None,
+                    processing_callback: Optional[Callable[[int], Any]] = None):
         for i in range(self.total_num):
             if processing_callback is not None:
                 processing_callback(i)

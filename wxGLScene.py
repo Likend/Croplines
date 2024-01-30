@@ -7,7 +7,7 @@ from OpenGL.GLU import *
 from OpenGL.raw.GLU import gluUnProject, gluProject
 import cv2
 import numpy as np
-from typing import overload, Any
+from typing import overload, Any, Optional
 from collections.abc import Callable
 from threading import Thread
 from prj import Prj
@@ -47,7 +47,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
 
         self.trans_mat = np.mat(np.identity(3, dtype=np.float64))  # 三阶单位矩阵
         self.zoom = 1.0    # 视口缩放因子
-        self.mpos_dragstart: wx.Point | None = None   # 鼠标位置 拖拽图片最开始的位置
+        self.mpos_dragstart: Optional[wx.Point] = None   # 鼠标位置 拖拽图片最开始的位置
 
         self.draw_mouse_x = None
         self.draw_mouse_y = None
@@ -57,7 +57,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         self.prj_curr_lines_ls: list[int] = []
         '''The line list of current page from Prj, please do not directly act on it.'''
 
-        self.set_page_handler: Callable[[int], Any] | None = None
+        self.set_page_handler: Optional[Callable[[int], Any]] = None
         '''The call back function of `self.setPage`, activated only when using `self.bindPrj`'''
 
         self.canvas_select_areas = []
@@ -89,7 +89,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         """响应背景擦除事件"""
         pass
 
-    def onPaint(self, event: wx.PaintEvent | None = None):
+    def onPaint(self, event: Optional[wx.PaintEvent] = None):
         """响应重绘事件"""
         self.SetCurrent(self.context)
         self.drawGL()                                       # 绘图
@@ -236,7 +236,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
     def scale(self,  x: float, y: float, scale: float):
         ...
 
-    def scale(self,  x: float = 0.0, y: float = 0.0, zoom: float | None = None, scale: float | None = None, mouse_stick=False):
+    def scale(self,  x: float = 0.0, y: float = 0.0, zoom: Optional[float] = None, scale: Optional[float] = None, mouse_stick=False):
         '''缩放'''
         if not self.checkCoordInside(x, y):
             return
