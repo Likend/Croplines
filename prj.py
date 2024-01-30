@@ -49,7 +49,7 @@ class PrjNoImgFileError(Exception):
         super().__init__(*args)
 
 
-class PrjFileFormatError(Exception):
+class PrjFileFormatFatalError(Exception):
     def __init__(self, *args: object) -> None:
         super().__init__(*args)
 
@@ -58,6 +58,8 @@ class PrjData(TypedDict):
     total_num: int
     img_files: list[str]
     line_lists: list[list[int]]
+    config_border: int
+    config_filer_pix_size: int
 
 
 class Prj:
@@ -71,23 +73,23 @@ class Prj:
 
         self.output_folder: str = "out"
 
-        # config
-        self.config_border: int = 10
-        self.config_filer_pix_size: int = 5
-
     def loadImgFromDir(self, prj_dir: str) -> None:
         self.dir = prj_dir
         try:
             self.load()
         except FileNotFoundError:
+            # new prj
+            # init data
             self.data['img_files'] = scan_files(prj_dir, postfix=tuple(
                 ['jpg', 'jpeg', 'bmp', 'png', 'tif', 'tiff', 'gif']))
             if len(self.data['img_files']) == 0:
                 raise PrjNoImgFileError
             self.total_num = len(self.data['img_files'])
             self.line_lists = [[] for _ in range(self.total_num)]
-            self.is_change = True
+            self.config_border = 10
+            self.config_filer_pix_size = 8
             self.imgLsNaturalSort()
+            self.is_change = True
 
     def __len__(self) -> int:
         return len(self.data["img_files"])
@@ -105,6 +107,7 @@ class Prj:
 
     @img_files.setter
     def img_files(self, value: list):
+        self.is_change = True
         self.data["img_files"] = value
 
     @property
@@ -113,6 +116,7 @@ class Prj:
 
     @total_num.setter
     def total_num(self, value: int):
+        self.is_change = True
         self.data['total_num'] = value
 
     @property
@@ -121,6 +125,7 @@ class Prj:
 
     @line_lists.setter
     def line_lists(self, value: list[list[int]]):
+        self.is_change = True
         self.data['line_lists'] = value
 
     def line_listsAppend(self, page_index: int, line_data: int):
@@ -145,28 +150,50 @@ class Prj:
     def output_dir(self) -> str:
         return f'{self.dir}\\{self.output_folder}'
 
+    @property
+    def config_border(self) -> int:
+        return self.data['config_border']
+
+    @config_border.setter
+    def config_border(self, value: int):
+        self.data['config_border'] = value
+        self.is_change = True
+
+    @property
+    def config_filer_pix_size(self) -> int:
+        return self.data['config_filer_pix_size']
+
+    @config_filer_pix_size.setter
+    def config_filer_pix_size(self, value: int):
+        self.data['config_filer_pix_size'] = value
+        self.is_change = True
+
     def save(self):
         with open(f'{self.dir}/croplines.cpln', 'wb') as file:
             pickle.dump(obj=self.data, file=file, protocol=True)
         self.is_change = False
 
     def load(self):
-        '''有可能产生异常 FileNotFoundError'''
+        '''有可能产生异常 PrjFileFormatFatalError'''
         with open(f'{self.dir}/croplines.cpln', 'rb') as file:
             data: PrjData = pickle.load(file)
         self.is_change = False
 
         # check file
         if "total_num" not in data:
-            raise PrjFileFormatError
+            raise PrjFileFormatFatalError
         if "img_files" not in data:
-            raise PrjFileFormatError
+            raise PrjFileFormatFatalError
         if "line_lists" not in data:
-            raise PrjFileFormatError
+            raise PrjFileFormatFatalError
+        if "config_border" not in data:
+            data["config_border"] = 8
+        if "config_filer_pix_size" not in data:
+            data["config_filer_pix_size"] = 10
         if len(data['img_files']) != data['total_num']:
-            raise PrjFileFormatError
+            raise PrjFileFormatFatalError
         if len(data['line_lists']) != data['total_num']:
-            raise PrjFileFormatError
+            raise PrjFileFormatFatalError
         self.data = data
 
     def __getPageNotCurr(self, index: int):
@@ -203,7 +230,8 @@ class Prj:
             # pic_crop = cv2.copyMakeBorder(
             #     pic[line_prev:line_curr, :], top=line_prev, bottom=0, left=0, right=0, borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
             pic_crop = pic[line_prev:line_curr, :]
-            ((l, t), (r, b)) = selectArea(pic_crop)
+            ((l, t), (r, b)) = selectArea(pic_crop,
+                                          filer_pix_size=self.config_filer_pix_size)
             if l == -1 or t == -1 or r == -1 or b == -1:
                 continue
             t += line_prev
@@ -236,7 +264,7 @@ class Prj:
                                             self.config_border, self.config_border,
                                             self.config_border, self.config_border,
                                             borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
-            cv2.imwrite(f"{self.output_dir}\\{index+1}-{cout}.png", pic_border)
+            cv2.imwrite(f"{self.output_dir}\\{index+1}-{cout}.tif", pic_border)
             cout += 1
 
         if finish_callback is not None:

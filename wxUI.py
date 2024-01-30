@@ -75,6 +75,72 @@ class MainWindow ( wx.Frame ):
 		self.pn_canvas.SetSizer( bSizer31 )
 		self.pn_canvas.Layout()
 		bSizer31.Fit( self.pn_canvas )
+		self.pn_config = wx.Notebook( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0, u"设置" )
+		self.m_mgr.AddPane( self.pn_config, wx.aui.AuiPaneInfo() .Right() .Caption( u"设置" ).PinButton( True ).Dock().Resizable().FloatingSize( wx.DefaultSize ).BottomDockable( False ).TopDockable( False ).BestSize( wx.Size( 350,500 ) ).MinSize( wx.Size( 350,-1 ) ) )
+
+		self.ntbk_cfg_process = wx.Panel( self.pn_config, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer4 = wx.BoxSizer( wx.VERTICAL )
+
+		bSizer9 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.tx_label_cfg_pix_filter = wx.StaticText( self.ntbk_cfg_process, wx.ID_ANY, u"忽略斑点直径", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tx_label_cfg_pix_filter.Wrap( -1 )
+
+		bSizer9.Add( self.tx_label_cfg_pix_filter, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.tx_value_cfg_pix_filter = wx.StaticText( self.ntbk_cfg_process, wx.ID_ANY, u"00", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tx_value_cfg_pix_filter.Wrap( -1 )
+
+		bSizer9.Add( self.tx_value_cfg_pix_filter, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+		self.slider_cfg_pix_filter = wx.Slider( self.ntbk_cfg_process, wx.ID_ANY, 8, 0, 50, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		bSizer9.Add( self.slider_cfg_pix_filter, 1, wx.TOP|wx.BOTTOM, 5 )
+
+		self.spinbtn_cfg_pix_filter = wx.SpinButton( self.ntbk_cfg_process, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.spinbtn_cfg_pix_filter.SetMaxSize( wx.Size( 20,-1 ) )
+
+		bSizer9.Add( self.spinbtn_cfg_pix_filter, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+
+
+		bSizer4.Add( bSizer9, 0, wx.EXPAND, 5 )
+
+
+		self.ntbk_cfg_process.SetSizer( bSizer4 )
+		self.ntbk_cfg_process.Layout()
+		bSizer4.Fit( self.ntbk_cfg_process )
+		self.pn_config.AddPage( self.ntbk_cfg_process, u"处理", False )
+		self.ntbk_cfg_output = wx.Panel( self.pn_config, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.TAB_TRAVERSAL )
+		bSizer41 = wx.BoxSizer( wx.VERTICAL )
+
+		bSizer91 = wx.BoxSizer( wx.HORIZONTAL )
+
+		self.tx_label_border = wx.StaticText( self.ntbk_cfg_output, wx.ID_ANY, u"空白边距", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tx_label_border.Wrap( -1 )
+
+		bSizer91.Add( self.tx_label_border, 0, wx.ALL|wx.ALIGN_CENTER_VERTICAL, 5 )
+
+		self.tx_value_cfg_border = wx.StaticText( self.ntbk_cfg_output, wx.ID_ANY, u"000", wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.tx_value_cfg_border.Wrap( -1 )
+
+		bSizer91.Add( self.tx_value_cfg_border, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.LEFT, 5 )
+
+		self.slider_cfg_border = wx.Slider( self.ntbk_cfg_output, wx.ID_ANY, 10, 0, 500, wx.DefaultPosition, wx.DefaultSize, wx.SL_HORIZONTAL )
+		bSizer91.Add( self.slider_cfg_border, 1, wx.TOP|wx.BOTTOM, 5 )
+
+		self.spinbtn_cfg_border = wx.SpinButton( self.ntbk_cfg_output, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, 0 )
+		self.spinbtn_cfg_border.SetMaxSize( wx.Size( 20,-1 ) )
+
+		bSizer91.Add( self.spinbtn_cfg_border, 0, wx.ALIGN_CENTER_VERTICAL|wx.TOP|wx.BOTTOM|wx.RIGHT, 5 )
+
+
+		bSizer41.Add( bSizer91, 0, wx.EXPAND, 5 )
+
+
+		self.ntbk_cfg_output.SetSizer( bSizer41 )
+		self.ntbk_cfg_output.Layout()
+		bSizer41.Fit( self.ntbk_cfg_output )
+		self.pn_config.AddPage( self.ntbk_cfg_output, u" 输出", True )
+
 
 		self.m_mgr.Update()
 		self.Centre( wx.BOTH )

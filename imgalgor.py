@@ -1,7 +1,7 @@
 import cv2
 
 
-def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5, expand_size: int = 0) -> tuple[tuple[int, int], tuple[int, int]]:
+def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 8, expand_size: int = 0) -> tuple[tuple[int, int], tuple[int, int]]:
     '''
     自动选择黑色像素区域
     # para:
@@ -14,6 +14,8 @@ def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 5, expand_size: 
     If the image is empty, return ((-1, -1), (-1, -1)).
     '''
     height, width = image.shape[0:2]
+    if height == 0 or width == 0:
+        return ((-1, -1), (-1, -1))
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     img_bin = cv2.threshold(img_gray, thresh=127,
                             maxval=255, type=cv2.THRESH_BINARY_INV)[1]

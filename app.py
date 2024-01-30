@@ -3,8 +3,9 @@ import wx
 import ctypes
 import traceback
 from threading import Thread
-from typing import overload
-from prj import Prj, PrjNoImgFileError, PrjFileFormatError
+from typing import overload, Optional, Any
+from collections.abc import Callable
+from prj import Prj, PrjNoImgFileError, PrjFileFormatFatalError
 
 
 class MainWindow(wxUI.MainWindow):
@@ -17,6 +18,7 @@ class MainWindow(wxUI.MainWindow):
         # self.m_scrolledWindow2.GetClientSize
 
         self.enableTool(False)
+        self.enableConfig(False)
 
         # toolbar bind event
         self.tool_bar.Bind(wx.EVT_TOOL, self.onClickBtnSave,
@@ -37,8 +39,19 @@ class MainWindow(wxUI.MainWindow):
         # page list bind event
         self.pn_page_list.Bind(wx.EVT_LISTBOX, self.onClickPageList)
 
+        # config panel bind event
+        configure_filer_pix_size = SliderSpinGroup(
+            spinbtn=self.spinbtn_cfg_pix_filter, lable_value=self.tx_value_cfg_pix_filter,
+            slider=self.slider_cfg_pix_filter, min=0, max=50, init=8)
+        configure_filer_pix_size.setCallback(self.onChnageCfgFilerPixSize)
+        configure_border = SliderSpinGroup(
+            spinbtn=self.spinbtn_cfg_border, lable_value=self.tx_value_cfg_border,
+            slider=self.slider_cfg_border, min=0, max=500, init=10, zfill=3)
+        configure_border.setCallback(self.onChangeCfgBorder)
+
         # bind window close
         self.Bind(wx.EVT_CLOSE, self.onWindowClose)
+
         # bind keyboard event
         # detect key pressed
         self.SetFocus()
@@ -46,14 +59,12 @@ class MainWindow(wxUI.MainWindow):
         self.Bind(wx.EVT_KEY_UP, self.onKeyUp)
         self.pn_page_list.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
         self.pn_page_list.Bind(wx.EVT_KEY_UP, self.onKeyUp)
-        self.canvas.Bind(wx.EVT_KEY_DOWN, self.onKeyDown)
-        self.canvas.Bind(wx.EVT_KEY_UP, self.onKeyUp)
 
         # default value
         self.prj_location = ''
         self.prj = None
 
-    def enableTool(self, state: bool):
+    def enableTool(self, state: bool) -> None:
         '''enable all the tool except LOAD or the opposiite'''
         if state:
             self.tool_bar.EnableTool(wxUI.btnid_SAVE, True)
@@ -70,6 +81,14 @@ class MainWindow(wxUI.MainWindow):
             self.tool_bar.EnableTool(wxUI.btnid_NEXT_PAGE, False)
             self.tool_bar.EnableTool(wxUI.btnid_PREV_PAGE, False)
 
+    def enableConfig(self, state: bool) -> None:
+        if state:
+            self.ntbk_cfg_output.Enable()
+            self.ntbk_cfg_process.Enable()
+        else:
+            self.ntbk_cfg_output.Disable()
+            self.ntbk_cfg_process.Disable()
+
     def setPagePrev(self):
         page_index_curr = self.pn_page_list.GetSelection()
         if (page_index_curr == 0 or page_index_curr == -1):
@@ -84,6 +103,12 @@ class MainWindow(wxUI.MainWindow):
         self.pn_page_list.SetSelection(page_index_curr+1)
         self.canvas.setPage(page_index_curr+1)
 
+    def savePrj(self):
+        try:
+            self.prj.save()
+        except Exception as e:
+            self.showErrorMsgBox(e, caption="保存出错")
+
     def onClickBtnLoad(self, event):
         dir_dialog = wx.DirDialog(parent=self, message="选择目录")
         res = dir_dialog.ShowModal()
@@ -93,6 +118,7 @@ class MainWindow(wxUI.MainWindow):
 
         # enable all tool btn
         self.enableTool(True)
+        self.enableConfig(True)
 
         prj_dir = dir_dialog.GetPath()
         self.prj = Prj()
@@ -101,12 +127,14 @@ class MainWindow(wxUI.MainWindow):
         except PrjNoImgFileError:
             wx.MessageBox(message="此文件目录下没有图片", caption="导入异常",
                           parent=self, style=wx.ICON_ERROR)
+            self.enableConfig(True)
             self.enableTool(False)
             return
-        except PrjFileFormatError:
+        except PrjFileFormatFatalError:
             wx.MessageBox(message="项目文件出错", caption="导入异常",
                           parent=self, style=wx.ICON_ERROR)
             self.enableTool(False)
+            self.enableConfig(True)
             return
 
         self.canvas.bindPrj(
@@ -123,11 +151,9 @@ class MainWindow(wxUI.MainWindow):
 
         dir_dialog.Destroy()
 
-    def onClickBtnSave(self, event: None | wx.CommandEvent = None):
-        try:
-            self.prj.save()
-        except Exception as e:
-            self.showErrorMsgBox(e, caption="保存出错")
+    def onClickBtnSave(self, event: wx.CommandEvent):
+        self.savePrj()
+        event.Skip()
 
     def onClickBtnPrevPage(self, event: wx.CommandEvent):
         self.setPagePrev()
@@ -159,6 +185,13 @@ class MainWindow(wxUI.MainWindow):
         thread.start()
         event.Skip()
 
+    def onChnageCfgFilerPixSize(self, value: int):
+        self.prj.config_filer_pix_size = value
+        self.canvas.refreshSelectAreas()
+
+    def onChangeCfgBorder(self, value: int):
+        self.prj.config_border = value
+
     def onWindowClose(self, event) -> None:
         if self.prj is None:
             event.Skip()
@@ -170,7 +203,7 @@ class MainWindow(wxUI.MainWindow):
             parent=self, message="项目已更改，是否保存？", style=wx.YES_NO | wx.CANCEL | wx.ICON_QUESTION)
         match dialog.ShowModal():
             case wx.ID_YES:
-                self.onClickBtnSave()
+                self.savePrj()
                 event.Skip()
                 return
             case wx.ID_NO:
@@ -218,6 +251,42 @@ class MainWindow(wxUI.MainWindow):
         del self.canvas
 
 
+class SliderSpinGroup:
+    def __init__(self,
+                 spinbtn: wx.SpinButton,
+                 lable_value: wx.StaticText,
+                 slider: wx.Slider,
+                 min: int, max: int, init: int, zfill: int = 2) -> None:
+        self.spinbtn = spinbtn
+        self.lable_value = lable_value
+        self.slider = slider
+        self.min = min
+        self.max = max
+        self.init = init
+        self.zfill = zfill
+        self.callback: Optional[Callable[[int], Any]] = None
+        self.spinbtn.SetMin(min)
+        self.spinbtn.SetMax(max)
+        self.setValue(init)
+
+        self.spinbtn.Bind(wx.EVT_SPIN, self.onChange)
+        self.slider.Bind(wx.EVT_SLIDER, self.onChange)
+
+    def setCallback(self, callback: Callable[[int], Any]):
+        self.callback = callback
+
+    def setValue(self, value: int):
+        self.lable_value.SetLabelText(str(value).zfill(self.zfill))
+        self.spinbtn.SetValue(value)
+        self.slider.SetValue(value)
+        if self.callback is not None:
+            self.callback(value)
+
+    def onChange(self, event: wx.CommandEvent | wx.SpinEvent):
+        value: int = event.GetInt()
+        self.setValue(value)
+
+
 class App(wx.App):
     def __init__(self):
         # Enable high Dpi awareness
@@ -237,9 +306,14 @@ class App(wx.App):
 
     # ["with ... as ..." grammer]
     def __enter__(self):
-        self.main_win = MainWindow(None)
-        self.main_win.Show()
-        return self
+        try:
+            self.main_win = MainWindow(None)
+            self.main_win.Show()
+            return self
+        except Exception as e:
+            wx.MessageBox(message=e.args[0] +
+                          "\n=================\n" +
+                          traceback.format_exc(), caption="运行出错")
 
     def __exit__(self, type, value, trace):
         del self.main_win

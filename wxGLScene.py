@@ -201,17 +201,6 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
 
         # 绘制选择区域
         for ((l, t), (r, b)) in self.canvas_select_areas:
-            # glVertex2f(l, t)
-            # glVertex2f(r, t)
-
-            # glVertex2f(r, t)
-            # glVertex2f(r, b)
-
-            # glVertex2f(r, b)
-            # glVertex2f(l, b)
-
-            # glVertex2f(l, b)
-            # glVertex2f(l, t)
             glBegin(GL_QUADS)
             glColor4f(0, 0.5, 0, 0.2)
 
@@ -388,6 +377,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         """响应鼠标左键按下事件"""
         self.CaptureMouse()
         self.mpos_dragstart = event.Position
+        self.parent.Parent.SetFocus()
 
     def onLeftUp(self, event):
         """响应鼠标左键弹起事件"""
@@ -398,6 +388,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
 
     def onRightUp(self, event: wx.MouseEvent):
         """响应鼠标右键弹起事件"""
+        self.parent.Parent.SetFocus()
         mpos = event.Position
         x, y = self.getWorldCoord(*tuple(mpos))
         if not self.checkCoordInside(x, y):
@@ -411,13 +402,13 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
                 if win_y_min <= win_y <= win_y_max:
                     self.prj.line_listsPop(self.prj.curr_page, i)
                     self.canvas_lines.pop(i)
-                    self.setSelectAreas()
+                    self.refreshSelectAreas()
                     break
         else:
             self.canvas_lines.append(y)
             self.prj.line_listsAppend(self.prj.curr_page,
                                       int(self.pic.shape[0] * (1-y) / 2 + 0.5))
-            self.setSelectAreas()
+            self.refreshSelectAreas()
 
     def onMouseMotion(self, event: wx.MouseEvent):
         """响应鼠标移动事件 拖拽图片
@@ -492,7 +483,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         self.Bind(wx.EVT_SCROLLWIN, self.onScroll)
         # self.Bind(wx.EVT_SCROLL_THUMBTRACK, self.onScroll)
 
-    def setSelectAreas(self):
+    def refreshSelectAreas(self):
         tmp = self.prj.calcSelectArea(self.prj.curr_page)
         self.canvas_select_areas = []
         for ((l, t), (r, b)) in tmp:
@@ -510,7 +501,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         self.prj_curr_lines_ls = self.prj.getLineList(index)
         self.canvas_lines = [1 - 2*line/self.pic.shape[0]
                              for line in self.prj_curr_lines_ls]
-        self.setSelectAreas()
+        self.refreshSelectAreas()
         self.setTextrue()
         self.Refresh(False)
         if self.set_page_handler is not None:
