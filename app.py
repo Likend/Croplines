@@ -148,6 +148,7 @@ class MainWindow(wxUI.MainWindow):
 
         # insert all image filename
         self.pn_page_list.InsertItems(self.prj.img_filenames, 0)
+        self.pn_page_list.SetSelection(0)
 
         dir_dialog.Destroy()
 
