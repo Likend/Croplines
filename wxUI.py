@@ -37,23 +37,23 @@ class MainWindow ( wx.Frame ):
 		self.tool_bar = wx.aui.AuiToolBar( self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize, wx.aui.AUI_TB_HORZ_LAYOUT|wx.aui.AUI_TB_OVERFLOW|wx.aui.AUI_TB_TEXT )
 		self.tool_bar.SetForegroundColour( wx.SystemSettings.GetColour( wx.SYS_COLOUR_WINDOW ) )
 
-		self.btn_prev_page = self.tool_bar.AddTool( btnid_PREV_PAGE, u"上一页", wx.Bitmap( u"asserts/prevslide.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"上一页", u"上一页", None )
+		self.btn_prev_page = self.tool_bar.AddTool( btnid_PREV_PAGE, u"上一页", wx.Bitmap( u"assets/prevslide.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"上一页", u"上一页", None )
 
-		self.btn_next_page = self.tool_bar.AddTool( btnid_NEXT_PAGE, u"下一页", wx.Bitmap( u"asserts/nextslide.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"下一页", u"下一页", None )
-
-		self.tool_bar.AddSeparator()
-
-		self.btn_save = self.tool_bar.AddTool( btnid_SAVE, u"保存", wx.Bitmap( u"asserts/save.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"保存", u"保存", None )
-
-		self.btn_load = self.tool_bar.AddTool( btnid_LOAD, u"载入", wx.Bitmap( u"asserts/loadbasic.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"载入", u"载入", None )
+		self.btn_next_page = self.tool_bar.AddTool( btnid_NEXT_PAGE, u"下一页", wx.Bitmap( u"assets/nextslide.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"下一页", u"下一页", None )
 
 		self.tool_bar.AddSeparator()
 
-		self.btn_zoom_page = self.tool_bar.AddTool( btnid_ZOOM_PAGE, u"缩放合适大小", wx.Bitmap( u"asserts/zoompage.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"缩放合适大小", u"缩放合适大小", None )
+		self.btn_save = self.tool_bar.AddTool( btnid_SAVE, u"保存", wx.Bitmap( u"assets/save.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"保存", u"保存", None )
 
-		self.btn_crop_curr_page = self.tool_bar.AddTool( btnid_CROP_CURR_PAGE, u"裁剪当前页", wx.Bitmap( u"asserts/crop.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"裁剪当前页", u"裁剪当前页", None )
+		self.btn_load = self.tool_bar.AddTool( btnid_LOAD, u"载入", wx.Bitmap( u"assets/loadbasic.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"载入", u"载入", None )
 
-		self.btn_crop_all_page = self.tool_bar.AddTool( btnid_CROP_ALL_PAGE, u"裁剪全部", wx.Bitmap( u"asserts/cropall.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"裁剪全部", u"裁剪全部", None )
+		self.tool_bar.AddSeparator()
+
+		self.btn_zoom_page = self.tool_bar.AddTool( btnid_ZOOM_PAGE, u"缩放合适大小", wx.Bitmap( u"assets/zoompage.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"缩放合适大小", u"缩放合适大小", None )
+
+		self.btn_crop_curr_page = self.tool_bar.AddTool( btnid_CROP_CURR_PAGE, u"裁剪当前页", wx.Bitmap( u"assets/crop.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"裁剪当前页", u"裁剪当前页", None )
+
+		self.btn_crop_all_page = self.tool_bar.AddTool( btnid_CROP_ALL_PAGE, u"裁剪全部", wx.Bitmap( u"assets/cropall.png", wx.BITMAP_TYPE_ANY ), wx.NullBitmap, wx.ITEM_NORMAL, u"裁剪全部", u"裁剪全部", None )
 
 		self.tool_bar.Realize()
 		self.m_mgr.AddPane( self.tool_bar, wx.aui.AuiPaneInfo() .Top() .CaptionVisible( False ).CloseButton( False ).PaneBorder( False ).Movable( False ).Dock().Resizable().FloatingSize( wx.Size( -1,-1 ) ).DockFixed( True ).LeftDockable( False ).RightDockable( False ).Floatable( False ).Layer( 10 ).ToolbarPane() )

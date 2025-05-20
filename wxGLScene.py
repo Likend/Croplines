@@ -240,7 +240,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         '''缩放'''
         if not self.checkCoordInside(x, y):
             return
-        if not isinstance(zoom, type(None)):
+        if zoom is not None:
             self.zoom = zoom
             if mouse_stick:
                 self.trans_mat[0, 0] = zoom
@@ -251,7 +251,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
                                          [0, 0, 1]],
                                         dtype=np.float64)
 
-        elif not isinstance(scale, type(None)):
+        elif scale is not None:
             self.zoom *= scale
             scale_mat = np.mat([[scale, 0, x*(1-scale)],
                                 [0, scale, y*(1-scale)],

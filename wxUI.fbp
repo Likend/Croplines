@@ -119,7 +119,7 @@
         <property name="window_name"></property>
         <property name="window_style"></property>
         <object class="tool" expanded="true">
-          <property name="bitmap">Load From File; asserts\prevslide.png</property>
+          <property name="bitmap">Load From File; assets\prevslide.png</property>
           <property name="context_menu">0</property>
           <property name="id">btnid_PREV_PAGE</property>
           <property name="kind">wxITEM_NORMAL</property>
@@ -130,7 +130,7 @@
           <property name="tooltip">上一页</property>
         </object>
         <object class="tool" expanded="true">
-          <property name="bitmap">Load From File; asserts\nextslide.png</property>
+          <property name="bitmap">Load From File; assets\nextslide.png</property>
           <property name="context_menu">0</property>
           <property name="id">btnid_NEXT_PAGE</property>
           <property name="kind">wxITEM_NORMAL</property>
@@ -144,7 +144,7 @@
           <property name="permission">protected</property>
         </object>
         <object class="tool" expanded="true">
-          <property name="bitmap">Load From File; asserts/save.png</property>
+          <property name="bitmap">Load From File; assets/save.png</property>
           <property name="context_menu">0</property>
           <property name="id">btnid_SAVE</property>
           <property name="kind">wxITEM_NORMAL</property>
@@ -155,7 +155,7 @@
           <property name="tooltip">保存</property>
         </object>
         <object class="tool" expanded="true">
-          <property name="bitmap">Load From File; asserts/loadbasic.png</property>
+          <property name="bitmap">Load From File; assets/loadbasic.png</property>
           <property name="context_menu">0</property>
           <property name="id">btnid_LOAD</property>
           <property name="kind">wxITEM_NORMAL</property>
@@ -169,7 +169,7 @@
           <property name="permission">protected</property>
         </object>
         <object class="tool" expanded="true">
-          <property name="bitmap">Load From File; asserts/zoompage.png</property>
+          <property name="bitmap">Load From File; assets/zoompage.png</property>
           <property name="context_menu">0</property>
           <property name="id">btnid_ZOOM_PAGE</property>
           <property name="kind">wxITEM_NORMAL</property>
@@ -180,7 +180,7 @@
           <property name="tooltip">缩放合适大小</property>
         </object>
         <object class="tool" expanded="true">
-          <property name="bitmap">Load From File; asserts/crop.png</property>
+          <property name="bitmap">Load From File; assets/crop.png</property>
           <property name="context_menu">0</property>
           <property name="id">btnid_CROP_CURR_PAGE</property>
           <property name="kind">wxITEM_NORMAL</property>
@@ -191,7 +191,7 @@
           <property name="tooltip">裁剪当前页</property>
         </object>
         <object class="tool" expanded="true">
-          <property name="bitmap">Load From File; asserts/cropall.png</property>
+          <property name="bitmap">Load From File; assets/cropall.png</property>
           <property name="context_menu">0</property>
           <property name="id">btnid_CROP_ALL_PAGE</property>
           <property name="kind">wxITEM_NORMAL</property>

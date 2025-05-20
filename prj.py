@@ -5,6 +5,7 @@ from typing import TypedDict, Any, Optional
 from collections.abc import Callable
 import cv2
 import numpy as np
+# from libtiff import TIFF
 
 from imgalgor import selectArea
 
@@ -14,6 +15,20 @@ def cv_imread(filepath: str):
     cv_img = cv2.imdecode(np.fromfile(
         filepath, dtype=np.uint8), cv2.IMREAD_COLOR)
     return cv_img
+
+
+def cv_imwrite(filename: str, img: cv2.typing.MatLike):
+    '''cv2.imwrite() 指定图片的存储路径和文件名，在 python3 中不支持中文和空格（但并不会报错）。必须使用中文时，可以使用 cv2.imencode() 处理'''
+    img_encode = cv2.imencode(
+        ".tif", img, ((int(cv2.IMWRITE_TIFF_COMPRESSION), 5)))[1]
+    data_encode = np.array(img_encode)
+    str_encode = data_encode.tobytes()
+    with open(filename, "wb") as file:
+        file.write(str_encode)
+        file.flush()
+    # tif: TIFF = TIFF.open(filename, "w")
+    # tif.write_image(data_encode, compression="jbig")
+    # tif.close()
 
 
 def scan_files(directory, prefix=None, postfix=None):
@@ -264,7 +279,9 @@ class Prj:
                                             self.config_border, self.config_border,
                                             self.config_border, self.config_border,
                                             borderType=cv2.BORDER_CONSTANT, value=[255, 255, 255])
-            cv2.imwrite(f"{self.output_dir}\\{index+1}-{cout}.tif", pic_border)
+            # cv2.imwrite(f"{self.output_dir}\\{index+1}-{cout}.tif", pic_border)
+            cv_imwrite(f"{self.output_dir}\\{index+1}-{cout}.tif",
+                       pic_border)
             cout += 1
 
         if finish_callback is not None:

@@ -11,7 +11,7 @@ from prj import Prj, PrjNoImgFileError, PrjFileFormatFatalError
 class MainWindow(wxUI.MainWindow):
     def __init__(self, parent):
         super().__init__(parent)
-        self.SetIcon(wx.Icon("asserts/mainicon.ico", wx.BITMAP_TYPE_ICO))
+        self.SetIcon(wx.Icon("assets/mainicon.ico", wx.BITMAP_TYPE_ICO))
 
         self.status_bar: wx.StatusBar  # typing config
 
@@ -328,3 +328,4 @@ class App(wx.App):
 if __name__ == '__main__':
     with App.run() as app:
         app.MainLoop()
+    
