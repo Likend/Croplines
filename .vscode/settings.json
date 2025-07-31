@@ -1,0 +1,9 @@
+{
+    "clangd.arguments": [
+        "--compile-commands-dir=${workspaceFolder}/build",
+        "--query-driver=D:\\MSYS2\\ucrt64\\bin\\g*"
+    ],
+    "clangd.fallbackFlags": [
+        "-std=c++20"
+    ]
+}

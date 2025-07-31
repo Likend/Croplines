@@ -1,0 +1,12 @@
+MAIN_ICON ICON "../assets/mainicon.ico"
+
+#define wxUSE_DPI_AWARE_MANIFEST 2
+#include "wx/msw/wx.rc"
+
+IMG_PREV_PAGE      RCDATA "../assets/prevslide.png"
+IMG_NEXT_PAGE      RCDATA "../assets/nextslide.png"
+IMG_SAVE           RCDATA "../assets/save.png"
+IMG_LOAD           RCDATA "../assets/loadbasic.png"
+IMG_ZOOM_PAGE      RCDATA "../assets/zoompage.png"
+IMG_CROP_CURR_PAGE RCDATA "../assets/crop.png"
+IMG_CROP_ALL_PAGE  RCDATA "../assets/cropall.png"

@@ -1,0 +1,35 @@
+cmake_minimum_required(VERSION 3.10)
+project(Croplines)
+
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/source-charset:utf-8>")
+
+set(CMAKE_CXX_STANDARD 20)
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libstdc++ -static-libgcc")
+    set(CMAKE_CXX_FLAGS_RELEASE "-s")
+endif()
+
+if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+    set(wxWidgets_USE_DEBUG ON)
+else()
+    set(wxWidgets_USE_STATIC ON)
+endif()
+find_package(wxWidgets REQUIRED aui core base)
+find_package(opencv REQUIRED)
+include(${wxWidgets_USE_FILE})
+include_directories(${OpenCV_INCLUDE_DIRS})
+
+file(GLOB_RECURSE SRCS src/*.cpp)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+set (WIN32_RESOURCES src/resource.rc)
+endif()
+
+
+add_executable(Croplines WIN32 ${SRCS} ${WIN32_RESOURCES}) #添加WIN32参数就不会显示控制台界面了
+target_link_libraries(Croplines ${wxWidgets_LIBRARIES})
+target_link_libraries(Croplines ${OpenCV_LIBS})
+
+if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
+    target_link_libraries(Croplines -Wl,-Bstatic stdc++ pthread -Wl,-Bdynamic) # 解决libwinpthread-1.dll依赖问题
+endif()
