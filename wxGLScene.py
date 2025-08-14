@@ -489,6 +489,7 @@ class WxGLScene(glcanvas.GLCanvas, wx.Window):
         for ((l, t), (r, b)) in tmp:
             self.canvas_select_areas.append(((2*l/self.pic.shape[1] - 1, 1 - 2*t/self.pic.shape[0]),
                                              (2*r/self.pic.shape[1] - 1, 1 - 2*b/self.pic.shape[0])))
+        self.Refresh()
 
     def setPage(self, index):
         '''显示第index页
