@@ -26,7 +26,7 @@ set (WIN32_RESOURCES src/resource.rc)
 endif()
 
 
-add_executable(Croplines WIN32 ${SRCS} ${WIN32_RESOURCES}) #添加WIN32参数就不会显示控制台界面了
+add_executable(Croplines  ${SRCS} ${WIN32_RESOURCES}) #添加WIN32参数就不会显示控制台界面了
 target_link_libraries(Croplines ${wxWidgets_LIBRARIES})
 target_link_libraries(Croplines ${OpenCV_LIBS})
 

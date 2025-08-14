@@ -1,11 +1,12 @@
 #include "canvas.h"
 
-#include <wx/event.h>
-
+#include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstddef>
-#include <opencv2/core/ocl.hpp>
-#include <opencv2/core/utility.hpp>
+
+#include <opencv2/opencv.hpp>
+#include <wx/graphics.h>
 
 using namespace Croplines;
 
@@ -18,49 +19,28 @@ ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize,
                                  double scale)
     : imageSize(imageSize), windowSize(windowSize), scale(scale) {
     scaledSize = imageSize * scale;
-    offset = wxPoint{} + (windowSize - scaledSize) / 2;
+    MoveToCenter();
 }
 
 ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize)
     : imageSize(imageSize), windowSize(windowSize) {
     scale = GetScaleSuitesPage();
     scaledSize = imageSize * scale;
-    offset = wxPoint{} + (windowSize - scaledSize) / 2;
+    MoveToCenter();
 }
 
-bool ImageScaleModel::Clip() {
-    bool ret = true;
-    if (scaledSize.x >= windowSize.x) {
-        if (offset.x > 0)
-            offset.x = 0;
-        else if (offset.x < windowSize.x - scaledSize.x)
-            offset.x = windowSize.x - scaledSize.x;
-        else
-            ret = false;
+void ImageScaleModel::Clamp() {
+    wxSize border = windowSize - scaledSize;
+    if (border.x < 0) {
+        offset.x = std::clamp(offset.x, border.x, 0);
     } else {
-        if (offset.x < 0)
-            offset.x = 0;
-        else if (offset.x > windowSize.x - scaledSize.x)
-            offset.x = windowSize.x - scaledSize.x;
-        else
-            ret = false;
+        offset.x = std::clamp(offset.x, 0, border.x);
     }
-    if (scaledSize.y >= windowSize.y) {
-        if (offset.y > 0)
-            offset.y = 0;
-        else if (offset.y < windowSize.y - scaledSize.y)
-            offset.y = windowSize.y - scaledSize.y;
-        else
-            ret = false;
+    if (border.y < 0) {
+        offset.y = std::clamp(offset.y, border.y, 0);
     } else {
-        if (offset.y < 0)
-            offset.y = 0;
-        else if (offset.y > windowSize.y - scaledSize.y)
-            offset.y = windowSize.y - scaledSize.y;
-        else
-            ret = false;
+        offset.y = std::clamp(offset.y, 0, border.y);
     }
-    return ret;
 }
 
 void ImageScaleModel::Scale(double factor, wxPoint center) {
@@ -73,39 +53,36 @@ void ImageScaleModel::Scale(double factor, wxPoint center) {
     scale *= factor;
     offset = center + factor * (offset - center);
     scaledSize = imageSize * scale;
-    Clip();
-}
-
-void ImageScaleModel::Scale(double scale) {
-    Scale(scale, wxPoint{} + windowSize / 2);
+    Clamp();
+    modified = true;
 }
 
 void ImageScaleModel::ScaleTo(double scale, wxPoint center) {
-    if (scale > ZOOM_MAX) {
-        scale = ZOOM_MAX;
-    } else if (scale < ZOOM_MIN) {
-        scale = ZOOM_MIN;
-    }
+    scale = std::clamp(scale, ZOOM_MIN, ZOOM_MAX);
     double factor = scale / this->scale;
     this->scale = scale;
     offset = center + factor * (offset - center);
     scaledSize = imageSize * scale;
-    Clip();
-}
-
-void ImageScaleModel::ScaleTo(double scale) {
-    ScaleTo(scale, wxPoint{} + windowSize / 2);
+    Clamp();
+    modified = true;
 }
 
 void ImageScaleModel::Move(wxPoint dr) {
     offset += dr;
-    Clip();
+    Clamp();
+    modified = true;
+}
+
+void ImageScaleModel::MoveToCenter() {
+    offset = wxPoint{} + (windowSize - scaledSize) / 2;
+    modified = true;
 }
 
 void ImageScaleModel::WindowResize(wxSize windowSizeNew) {
     offset += (windowSizeNew - windowSize) / 2;
     windowSize = windowSizeNew;
-    Clip();
+    Clamp();
+    modified = true;
 }
 
 double ImageScaleModel::GetScaleSuitesWidth() const {
@@ -120,12 +97,24 @@ double ImageScaleModel::GetScaleSuitesPage() const {
     return std::min(GetScaleSuitesWidth(), GetScaleSuitesHeight());
 }
 
-Canvas::Canvas(wxWindow* parent, wxWindowID id) : wxPanel(parent, id) {
+cv::Mat ImageScaleModel::GetTransformMatrix() const {
+    return (cv::Mat_<double>(2, 3) << scale, 0, offset.x, 0, scale, offset.y);
+}
+
+bool ImageScaleModel::IsInsideImage(wxRealPoint worldPoint) const {
+    wxRealPoint imagePoint = ReverseTransform(worldPoint);
+    return 0 <= imagePoint.x && imagePoint.x <= imageSize.GetWidth() &&
+           0 <= imagePoint.y && imagePoint.y <= imageSize.GetHeight();
+}
+
+Canvas::Canvas(wxWindow* parent, wxWindowID id)
+    : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize,
+               wxVSCROLL | wxHSCROLL) {
     AlwaysShowScrollbars();
 
-    // disable on default
-    SetScrollbar(wxHSCROLL, -1, -1, 1);
-    SetScrollbar(wxVSCROLL, -1, -1, -1);
+    // // disable on default
+    SetScrollbar(wxHORIZONTAL, -1, -1, -1);
+    SetScrollbar(wxVERTICAL, -1, -1, -1);
 
     // cv::ocl::setUseOpenCL(true);
     cv::setUseOptimized(true);
@@ -133,18 +122,49 @@ Canvas::Canvas(wxWindow* parent, wxWindowID id) : wxPanel(parent, id) {
 
 Canvas::~Canvas() {}
 
-void Canvas::SetImage(wxImage image) {
-    ImageBundle bundle = {
-        .imageSrc = image,
-        .scaleModel = {image.GetSize(), this->GetClientSize()}};
+void Canvas::SetPage(Prj::Page& pageData) {
+    cv::Mat img = pageData.Load();
+    if (img.empty()) {
+        return;
+    }
+    Bundle bundle = {
+        .scaleModel = info ? info->scaleModel
+                           : ImageScaleModel{wxSize{img.cols, img.rows},
+                                             this->GetClientSize()},
+        .pageData = std::ref(pageData),
+    };
     // imageSrc = image;
-    cv::Mat img(image.GetHeight(), image.GetWidth(), CV_8UC3,
-                static_cast<void*>(image.GetData()));
+    // cv::Mat img(image.GetHeight(), image.GetWidth(), CV_8UC3,
+    //             static_cast<void*>(image.GetData()));
     // uimageSrc = img.getUMat(cv::ACCESS_READ);
     img.copyTo(bundle.uimageSrc);
 
-    imageInfo = bundle;
+    info = bundle;
     Refresh();
+}
+
+void Canvas::UpdateScrollbars() {
+    if (!info) {
+        SetScrollbar(wxHORIZONTAL, -1, -1, -1);
+        SetScrollbar(wxVERTICAL, -1, -1, -1);
+        return;
+    }
+
+    const auto& scaleModel = info->scaleModel;
+    if (scaleModel.scaledSize.GetWidth() > scaleModel.windowSize.GetWidth()) {
+        SetScrollbar(wxHORIZONTAL, -scaleModel.offset.x,
+                     scaleModel.windowSize.GetWidth(),
+                     scaleModel.scaledSize.GetWidth());
+    } else {
+        SetScrollbar(wxHORIZONTAL, -1, -1, -1);
+    }
+    if (scaleModel.scaledSize.GetHeight() > scaleModel.windowSize.GetHeight()) {
+        SetScrollbar(wxVERTICAL, -scaleModel.offset.y,
+                     scaleModel.windowSize.GetHeight(),
+                     scaleModel.scaledSize.GetHeight());
+    } else {
+        SetScrollbar(wxVERTICAL, -1, -1, -1);
+    }
 }
 
 void Canvas::OnPaint(wxPaintEvent& event) {
@@ -155,90 +175,223 @@ void Canvas::OnPaint(wxPaintEvent& event) {
     if (windowsSize.GetHeight() == 0 || windowsSize.GetWidth() == 0) {
         return;
     }
-    if (imageInfo) {
-        // matrix trans
-        // [[scale,  0,      offset_x,
-        //   0,      scale,  offset_y ]]
-        cv::UMat uimageDst(windowsSize.GetHeight(), windowsSize.GetWidth(),
-                           CV_8UC3);
-        cv::Mat trans =
-            (cv::Mat_<double>(2, 3) << imageInfo->scaleModel.scale, 0,
-             imageInfo->scaleModel.offset.x, 0, imageInfo->scaleModel.scale,
-             imageInfo->scaleModel.offset.y);
-        cv::warpAffine(imageInfo->uimageSrc, uimageDst, trans, uimageDst.size(),
-                       cv::INTER_AREA);
-        cv::Mat imageDst = uimageDst.getMat(cv::ACCESS_READ);
+    if (info) {
+        auto& scaleModel = info->scaleModel;
+        if (scaleModel.modified) {
+            cv::UMat uimageDst(windowsSize.GetHeight(), windowsSize.GetWidth(),
+                               CV_8UC3);
+            cv::warpAffine(info->uimageSrc, uimageDst,
+                           scaleModel.GetTransformMatrix(), uimageDst.size(),
+                           cv::INTER_LINEAR);
+            cv::Mat imageDst = uimageDst.getMat(cv::ACCESS_READ);
 
-        wxBitmap drawBmp = wxBitmap(wxImage(windowsSize, imageDst.data, true));
+            drawBmp = wxBitmap(wxImage(windowsSize, imageDst.data, true));
+
+            UpdateScrollbars();
+            scaleModel.modified = false;
+        }
         dc.DrawBitmap(drawBmp, 0, 0);
+
+        // Create graphics context from it
+        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
+        if (!gc) return;
+
+        // draw crop areas
+        gc->SetPen({wxColor(0, 0, 0, 0), 0});
+        gc->SetBrush({wxColor(204, 210, 204, 56)});
+        for (auto area : info->pageData.get().select_area) {
+            auto lt = scaleModel.Transform(
+                {static_cast<double>(area.l), static_cast<double>(area.t)});
+            auto rb = scaleModel.Transform(
+                {static_cast<double>(area.r), static_cast<double>(area.b)});
+            auto size = rb - lt;
+            gc->DrawRectangle(lt.x, lt.y, size.x, size.y);
+        }
+        gc->SetBrush(wxNullBrush);
+
+        // draw lines
+        double l = scaleModel.offset.x;
+        double r = scaleModel.TransformX(scaleModel.imageSize.GetWidth());
+        l = std::clamp(l, 0.0, static_cast<double>(windowsSize.GetWidth()));
+        r = std::clamp(r, 0.0, static_cast<double>(windowsSize.GetWidth()));
+
+        // draw crop lines
+        std::optional<std::uint32_t> deleting_line;
+        if (is_deleting && mouse_position) {
+            int y = mouse_position->y;
+            y = std::lround(info->scaleModel.ReverseTransformY(y));
+            auto search_line = info->pageData.get().SearchNearestLine(
+                y, FromDIP(5 / scaleModel.scale + 1));
+            if (search_line) {
+                deleting_line = **search_line;
+                gc->SetPen({wxColor(38, 148, 93, 128), FromDIP(3)});
+                double y = scaleModel.TransformY(*deleting_line);
+                gc->StrokeLine(l, y, r, y);
+            }
+        }
+        gc->SetPen({wxColor(78, 188, 133, 128), FromDIP(2)});
+        for (std::uint32_t line : info->pageData.get().crop_lines) {
+            if (deleting_line == line) continue;
+            double y = scaleModel.TransformY(line);
+            if (y >= 0 && y <= windowsSize.GetHeight()) {
+                gc->StrokeLine(l, y, r, y);
+            }
+        }
+
+        // draw mouse line
+        if (mouse_position) {
+            if (is_deleting)
+                gc->SetPen({wxColor(229, 20, 0, 128), FromDIP(2)});
+            else
+                gc->SetPen({wxColor(86, 156, 214, 128), FromDIP(2)});
+            int y = mouse_position->y;
+            gc->StrokeLine(l, y, r, y);
+        }
+
+        delete gc;
     }
 }
 
 void Canvas::OnSize(wxSizeEvent& event) {
-    if (imageInfo) imageInfo->scaleModel.WindowResize(event.GetSize());
+    if (info) info->scaleModel.WindowResize(event.GetSize());
     Refresh();
-    event.Skip();
 }
 
 void Canvas::OnMouseWheel(wxMouseEvent& event) {
+    if (!info) return;
+
     double factor;
     if (event.GetWheelRotation() > 0) {  // zoom in
         factor = ZOOM_IN_RATE;
     } else {  // zoom out
         factor = ZOOM_OUT_RATE;
     }
-    imageInfo->scaleModel.Scale(factor, event.GetPosition());
+    info->scaleModel.Scale(factor, event.GetPosition());
     Refresh();
 }
 
 void Canvas::OnMouseLeftDown(wxMouseEvent& event) {
-    CaptureMouse();
+    if (!is_mouse_capture) {
+        CaptureMouse();
+        is_mouse_capture = true;
+    }
     // m_parent->GetParent()->SetFocus();
+    SetFocus();
     mouse_drag_start = event.GetPosition();
 }
 
 void Canvas::OnMouseLeftUp(wxMouseEvent& event) {
-    ReleaseMouse();
+    if (is_mouse_capture) {
+        ReleaseMouse();
+        is_mouse_capture = false;
+    }
     mouse_drag_start.reset();
 }
 
+void Canvas::OnMouseLeftUp(wxMouseCaptureLostEvent& event) {
+    if (is_mouse_capture) {
+        ReleaseMouse();
+        is_mouse_capture = false;
+    }
+    mouse_drag_start.reset();
+}
+
+void Canvas::OnMouseRightUp(wxMouseEvent& event) {
+    if (!info) return;
+
+    wxPoint mouse_position = event.GetPosition();
+    if (!info->scaleModel.IsInsideImage(mouse_position)) return;
+
+    int y = mouse_position.y;
+    y = std::lround(info->scaleModel.ReverseTransformY(y));
+    if (is_deleting) {
+        std::optional<std::set<std::uint32_t>::iterator> it =
+            info->pageData.get().SearchNearestLine(
+                y, FromDIP(5 / info->scaleModel.scale + 1));
+        if (it) info->pageData.get().crop_lines.erase(*it);
+    } else {
+        info->pageData.get().crop_lines.insert(y);
+    }
+    Refresh();
+}
+
 void Canvas::OnMouseMotion(wxMouseEvent& event) {
+    if (!info) return;
     wxPoint mouse_drag = event.GetPosition();
-    if (mouse_drag_start && event.Dragging() && event.LeftIsDown()) {
+    if (mouse_drag_start && event.Dragging()) {
         auto dr = mouse_drag - *mouse_drag_start;
-        imageInfo->scaleModel.Move(dr);
+        info->scaleModel.Move(dr);
         *mouse_drag_start = mouse_drag;
+        Refresh();
+    }
+
+    // if mouse inside image
+    wxPoint mouse_position = event.GetPosition();
+    if (info->scaleModel.IsInsideImage(mouse_position)) {
+        this->mouse_position = mouse_position;
+        Refresh();
+    } else if (this->mouse_position) {
+        this->mouse_position = std::nullopt;
         Refresh();
     }
 }
 
 void Canvas::OnScroll(wxScrollWinEvent& event) {
-    const int orientation = event.GetOrientation() | wxORIENTATION_MASK;
-    if (orientation & wxHORIZONTAL) {
-        const int pos0 = GetScrollPos(wxHORIZONTAL);
-        const int pos1 = event.GetPosition();
-        imageInfo->scaleModel.Move(wxPoint{pos0 - pos1, 0});
-    }
-    if (orientation & wxVERTICAL) {
-        const int pos0 = GetScrollPos(wxVERTICAL);
-        const int pos1 = event.GetPosition();
-        imageInfo->scaleModel.Move(wxPoint{0, pos0 - pos1});
+    if (!info) return;
+
+    const int orientation = event.GetOrientation() & wxORIENTATION_MASK;
+    switch (orientation & wxORIENTATION_MASK) {
+        case wxHORIZONTAL: {
+            const int pos0 = GetScrollPos(wxHORIZONTAL);
+            const int pos1 = event.GetPosition();
+            info->scaleModel.Move(wxPoint{pos0 - pos1, 0});
+            Refresh();
+            return;
+        }
+        case wxVERTICAL: {
+            const int pos0 = GetScrollPos(wxVERTICAL);
+            const int pos1 = event.GetPosition();
+            info->scaleModel.Move(wxPoint{0, pos0 - pos1});
+            Refresh();
+            return;
+        }
+            // default:
+            //     return;  // ignore other orientations
     }
 }
 
+void Canvas::OnKeyUp(wxKeyEvent& event) {
+    switch (event.GetKeyCode()) {
+        case 'D':
+            if (is_deleting == true) {
+                is_deleting = false;
+                Refresh();
+            }
+            break;
+    }
+}
+void Canvas::OnKeyDown(wxKeyEvent& event) {
+    switch (event.GetKeyCode()) {
+        case 'D':
+            if (is_deleting == false) {
+                is_deleting = true;
+                Refresh();
+            }
+            break;
+    }
+}
+
+// clang-format off
 wxBEGIN_EVENT_TABLE(Canvas, wxPanel)
-    // Paint events
     EVT_PAINT(Canvas::OnPaint)
-    // Size event
     EVT_SIZE(Canvas::OnSize)
-    // Mouse wheel event
     EVT_MOUSEWHEEL(Canvas::OnMouseWheel)
-    // Mouse left down
     EVT_LEFT_DOWN(Canvas::OnMouseLeftDown)
-    // Mouse left up
     EVT_LEFT_UP(Canvas::OnMouseLeftUp)
-    // Mouse motion && Mouse draging
+    EVT_RIGHT_UP(Canvas::OnMouseRightUp)
+    EVT_MOUSE_CAPTURE_LOST(Canvas::OnMouseLeftUp)
     EVT_MOTION(Canvas::OnMouseMotion)
-    // EVT_SCROLLWIN(Canvas::OnScroll)
-    // End table
-    wxEND_EVENT_TABLE()
+    EVT_SCROLLWIN(Canvas::OnScroll)
+    EVT_KEY_DOWN(Canvas::OnKeyDown)
+    EVT_KEY_UP(Canvas::OnKeyUp)
+wxEND_EVENT_TABLE();

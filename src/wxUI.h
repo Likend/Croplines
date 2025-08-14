@@ -24,18 +24,26 @@
 #include <wx/stattext.h>
 
 #include "canvas.h"
-
-#define btnid_PREV_PAGE 1000
-#define btnid_NEXT_PAGE 1001
-#define btnid_SAVE 1002
-#define btnid_LOAD 1003
-#define btnid_ZOOM_PAGE 1004
-#define btnid_CROP_CURR_PAGE 1005
-#define btnid_CROP_ALL_PAGE 1006
+#include "ctrl.h"
 
 namespace Croplines {
 
-class MainWindow : public wxFrame {
+enum {
+    btnid_PREV_PAGE = 1000,
+    btnid_NEXT_PAGE,
+    btnid_SAVE,
+    btnid_LOAD,
+    btnid_ZOOM_PAGE,
+    btnid_CROP_CURR_PAGE,
+    btnid_CROP_ALL_PAGE,
+    btnid_CLOSE,
+
+    pnid_PAGE_LIST,
+
+    sldid_cfg_PIX_FILTER,
+    sldid_cfg_BORDER
+};
+class MainUI : public wxFrame {
    public:
     wxAuiToolBar* toolbar;
     wxAuiToolBarItem* btn_prev_page;
@@ -47,26 +55,18 @@ class MainWindow : public wxFrame {
     wxAuiToolBarItem* btn_crop_all_page;
     wxStatusBar* status_bar;
     wxListBox* pn_page_list;
-    Canvas* pn_canvas;
+    wxPanel* pn_canvas;
+    Canvas* canvas;
     wxNotebook* pn_config;
     wxPanel* ntbk_cfg_process;
-    wxStaticText* tx_label_cfg_pix_filter;
-    wxStaticText* tx_value_cfg_pix_filter;
-    wxSlider* slider_cfg_pix_filter;
-    wxSpinButton* spinbtn_cfg_pix_filter;
+    SliderWithSpin* sld_cfg_pix_filter;
     wxPanel* ntbk_cfg_output;
-    wxStaticText* tx_label_border;
-    wxStaticText* tx_value_cfg_border;
-    wxSlider* slider_cfg_border;
-    wxSpinButton* spinbtn_cfg_border;
+    SliderWithSpin* sld_cfg_border;
 
-    MainWindow(wxWindow* parent, wxWindowID id = wxID_ANY,
-               const wxString& title = wxT("Crop Lines"),
-               const wxPoint& pos = wxDefaultPosition,
-               const wxSize& size = wxSize(972, 651),
-               long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
+    MainUI(wxWindow* parent, wxWindowID id, const wxString& title,
+           const wxPoint& pos, const wxSize& size, long style);
     wxAuiManager m_mgr;
 
-    ~MainWindow();
+    virtual ~MainUI();
 };
 }  // namespace Croplines

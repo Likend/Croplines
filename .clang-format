@@ -3,5 +3,21 @@ Language:        Cpp
 BasedOnStyle:  Google
 IndentWidth: 4
 
+
+#IncludeBlocks: Preserve       # 保持头文件分组结构
+SortIncludes: CaseInsensitive   # 开启排序（但通过分组控制例外）
+
+IncludeCategories:
+  # 1. 优先排序标准库头文件（尖括号）
+  - Regex:           '^<[a-z_]+>'
+    Priority:        1
+
+  # 2. 禁止排序第三方库（通过低优先级 + 不排序同一分组）
+  - Regex:           '^<*.*>'    # 匹配第三方路径
+    Priority:        2
+
+  # 3. 其他头文件（如项目自有头文件）
+  - Regex:           '^".*"'
+    Priority:        3
 ...
 

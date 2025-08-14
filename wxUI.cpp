@@ -63,20 +63,20 @@ MainWindow::MainWindow(wxWindow* parent, wxWindowID id, const wxString& title,
 
     toolbar->Realize();
     m_mgr.AddPane(toolbar, wxAuiPaneInfo()
-                                .Top()
-                                .CaptionVisible(false)
-                                .CloseButton(false)
-                                .PaneBorder(false)
-                                .Movable(false)
-                                .Dock()
-                                .Resizable()
-                                .FloatingSize(wxSize(-1, -1))
-                                .DockFixed(true)
-                                .LeftDockable(false)
-                                .RightDockable(false)
-                                .Floatable(false)
-                                .Layer(10)
-                                .ToolbarPane());
+                               .Top()
+                               .CaptionVisible(false)
+                               .CloseButton(false)
+                               .PaneBorder(false)
+                               .Movable(false)
+                               .Dock()
+                               .Resizable()
+                               .FloatingSize(wxSize(-1, -1))
+                               .DockFixed(true)
+                               .LeftDockable(false)
+                               .RightDockable(false)
+                               .Floatable(false)
+                               .Layer(10)
+                               .ToolbarPane());
 
     status_bar = this->CreateStatusBar(1, wxSTB_SIZEGRIP, wxID_ANY);
     pn_page_list = new wxListBox(this, wxID_ANY, wxDefaultPosition,

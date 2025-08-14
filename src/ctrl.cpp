@@ -1,0 +1,94 @@
+#include "ctrl.h"
+
+#include <format>
+
+using namespace Croplines;
+
+constexpr int SLIDER_ID = 1100;
+constexpr int SPIN_ID = 1101;
+
+SliderWithSpin::SliderWithSpin(wxWindow* parent, wxWindowID id,
+                               const wxString& label, int value, int minValue,
+                               int maxValue, const wxPoint& pos,
+                               const wxSize& size)
+    : wxPanel(parent, id, pos, size) {
+    m_label = new wxStaticText(this, wxID_ANY, label);
+    m_value_text = new wxStaticText(this, wxID_ANY, std::format("{:3}", value));
+    m_slider = new wxSlider(this, SLIDER_ID, value, minValue, maxValue);
+    m_spin = new wxSpinButton(this, SPIN_ID);
+    m_spin->SetMaxSize(FromDIP(wxSize(20, -1)));
+
+    wxBoxSizer* bSizer = new wxBoxSizer(wxHORIZONTAL);
+    bSizer->Add(m_label, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
+    bSizer->Add(m_value_text, 0,
+                wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM | wxLEFT, 5);
+    bSizer->Add(m_slider, 1, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 5);
+    bSizer->Add(m_spin, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM | wxRIGHT,
+                5);
+
+    SetSizer(bSizer);
+}
+
+bool SliderWithSpin::Enable(bool enable) {
+    wxWindow* const items[] = {m_label, m_value_text, m_slider, m_spin};
+    const bool prevEnable = IsEnabled();
+    bool ret = wxPanel::Enable(enable);
+    if (!ret) {
+        return false;
+    }
+    for (auto& item : items) {
+        ret = item->Enable(enable);
+        if (!ret) {
+            wxPanel::Enable(prevEnable);
+            for (auto it = items; it != &item; it++) {
+                (*it)->Enable(prevEnable);
+            }
+            return false;
+        }
+    }
+    return true;
+}
+
+void SliderWithSpin::SetValue(int value) {
+    this->value = value;
+    if (m_spin->GetValue() != value) {
+        m_spin->SetValue(value);
+    }
+    if (m_slider->GetValue() != value) {
+        m_slider->SetValue(GetValue());
+    }
+    m_value_text->SetLabelText(std::format("{:3}", value));
+}
+
+void SliderWithSpin::CallEvent(int value) {
+    wxCommandEvent evt(wxEVT_COMMAND_SLIDER_UPDATED, GetId());
+    evt.SetEventObject(this);
+    evt.SetInt(value);
+    ProcessWindowEvent(evt);
+}
+
+void SliderWithSpin::OnSliderChanged(wxCommandEvent& event) {
+    const int value = m_slider->GetValue();
+    if (m_spin->GetValue() != value) {
+        m_spin->SetValue(value);
+    }
+    m_value_text->SetLabelText(std::format("{:3}", value));
+    this->value = value;
+    CallEvent(value);
+}
+
+void SliderWithSpin::OnSpinChanged(wxSpinEvent& event) {
+    const int value = m_spin->GetValue();
+    if (m_slider->GetValue() != value) {
+        m_slider->SetValue(value);
+    }
+    m_value_text->SetLabelText(std::format("{:3}", value));
+    this->value = value;
+    CallEvent(value);
+}
+
+// clang-format off
+wxBEGIN_EVENT_TABLE(SliderWithSpin, wxPanel)
+    EVT_SLIDER(SLIDER_ID, SliderWithSpin::OnSliderChanged)
+    EVT_SPIN(SPIN_ID, SliderWithSpin::OnSpinChanged) 
+wxEND_EVENT_TABLE()
