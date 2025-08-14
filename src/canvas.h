@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstddef>
 #include <functional>
 #include <optional>
 
@@ -24,6 +23,7 @@ class ImageScaleModel {
     double scale;
     wxPoint offset;
 
+    ImageScaleModel() = default;
     ImageScaleModel(wxSize imageSize, wxSize windowSize);
     ImageScaleModel(wxSize imageSize, wxSize windowSize, double scale);
 
@@ -40,6 +40,7 @@ class ImageScaleModel {
     void MoveToCenter();
 
     void WindowResize(wxSize windowSizeNew);
+    void ImageResize(wxSize imageSizeNew);
 
     double GetScaleSuitesPage() const;
     double GetScaleSuitesWidth() const;
@@ -57,7 +58,7 @@ class ImageScaleModel {
     }
     double ReverseTransformX(double x) const { return (x - offset.x) / scale; }
     double ReverseTransformY(double y) const { return (y - offset.y) / scale; }
-    
+
     bool IsInsideImage(wxRealPoint worldPoint) const;
 
    private:
@@ -66,26 +67,23 @@ class ImageScaleModel {
 };
 
 class Canvas : public wxWindow {
+   public:
+    Prj* prj = nullptr;
+    Prj::Page* page = nullptr;
+    ImageScaleModel scaleModel;
+
    private:
-    struct Bundle {
-        cv::UMat uimageSrc;
-        wxImage imageDst;
-        ImageScaleModel scaleModel;
-        std::reference_wrapper<Prj::Page> pageData;
-    };
-    std::optional<Bundle> info;
+    cv::UMat uimageSrc;
+    wxImage imageDst;
+    bool imageModified = false;
 
    public:
     Canvas(wxWindow* parent, wxWindowID id);
     ~Canvas();
+    void SetPrj(Prj& prj) { this->prj = &prj; }
     void SetPage(Prj::Page& pageData);
-
-    ImageScaleModel* GetScaleModel() {  // nullable
-        return info ? &info->scaleModel : nullptr;
-    }
-    const ImageScaleModel* GetScaleModel() const {  // nullable
-        return info ? &info->scaleModel : nullptr;
-    }
+    bool IsLoaded() const { return page; }
+    ImageScaleModel& GetScaleModel() { return scaleModel; }
 
    private:
     bool is_deleting = false;
@@ -105,6 +103,7 @@ class Canvas : public wxWindow {
     void OnMouseLeftDown(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseCaptureLostEvent& event);
+    void OnMouseRightDown(wxMouseEvent& event);
     void OnMouseRightUp(wxMouseEvent& event);
     void OnMouseMotion(wxMouseEvent& event);
 
@@ -112,6 +111,8 @@ class Canvas : public wxWindow {
 
     void OnKeyDown(wxKeyEvent& event);
     void OnKeyUp(wxKeyEvent& event);
+
+    void OnKillFocus(wxFocusEvent& event);
 
     wxDECLARE_EVENT_TABLE();
 };

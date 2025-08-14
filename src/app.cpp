@@ -53,21 +53,22 @@ void MainWindow::EnableConfigs(bool enable) {
 void MainWindow::Load(std::filesystem::path path) {
     auto prj_res = Prj::Load(path);
     if (prj_res) {
-        prj = prj_res;
+        prj = std::move(prj_res);
 
         // panel page list
-        std::vector<wxString> file_names(prj->pages.size());
-        std::ranges::transform(prj->pages, file_names.begin(),
-                               [](const auto& page) {
+        std::vector<wxString> file_names(prj->GetPages().size());
+        std::ranges::transform(prj->GetPages(), file_names.begin(),
+                               [](const Prj::Page& page) {
                                    return wxString(page.image_path.filename());
                                });
         pn_page_list->Set(file_names);
-        if (!prj->pages.empty()) {
+        if (!prj->GetPages().empty()) {
             CurrentPage(0);
             ShowPage();
         }
         EnableTools(true);
         EnableConfigs(true);
+        canvas->SetPrj(*prj);
     }
 }
 
@@ -94,10 +95,10 @@ bool MainWindow::Close() {
 void MainWindow::CurrentPage(std::size_t page) {
     if (prj) {
         __current_page = std::clamp(page, static_cast<std::size_t>(0),
-                                    prj->pages.size() - 1);
+                                    prj->GetPages().size() - 1);
         toolbar->EnableTool(btnid_PREV_PAGE, __current_page != 0);
         toolbar->EnableTool(btnid_NEXT_PAGE,
-                            __current_page != prj->pages.size() - 1);
+                            __current_page != prj->GetPages().size() - 1);
         pn_page_list->SetSelection(__current_page);
     }
 }
@@ -110,14 +111,14 @@ void MainWindow::PrevPage() {
 }
 
 void MainWindow::NextPage() {
-    if (prj && CurrentPage() < prj->pages.size()) {
+    if (prj && CurrentPage() < prj->GetPages().size()) {
         CurrentPage(CurrentPage() + 1);
         ShowPage();
     }
 }
 
 void MainWindow::ShowPage() {
-    canvas->SetPage(prj->pages[CurrentPage()]);
+    canvas->SetPage(prj->GetPages()[CurrentPage()]);
     canvas->Refresh();
 }
 
@@ -138,22 +139,36 @@ void MainWindow::OnLoad(wxCommandEvent& event) {
 }
 
 void MainWindow::OnZoomPage(wxCommandEvent& event) {
-    ImageScaleModel* scaleModel = canvas->GetScaleModel();
-    if (scaleModel) {
-        scaleModel->ScaleTo(scaleModel->GetScaleSuitesPage());
-        scaleModel->MoveToCenter();
+    if (canvas->IsLoaded()) {
+        ImageScaleModel& scaleModel = canvas->scaleModel;
+        scaleModel.ScaleTo(scaleModel.GetScaleSuitesPage());
+        scaleModel.MoveToCenter();
         canvas->Refresh();
     }
 }
 
 void MainWindow::OnCropCurrPage(wxCommandEvent& event) {
-    // Handle crop current page action
-    event.Skip();
+    if (canvas->IsLoaded()) {
+        Prj::Page& page = *canvas->page;
+        SetStatusText(std::format("Page {} is croping...", CurrentPage() + 1));
+        if (prj->SaveCrops(page)) {
+            SetStatusText(std::format("Page {} finished!", CurrentPage() + 1));
+        } else {
+            SetStatusText(std::format("Page {} failed!", CurrentPage() + 1));
+        }
+    }
 }
 
 void MainWindow::OnCropAllPage(wxCommandEvent& event) {
-    // Handle crop all pages action
-    event.Skip();
+    if (canvas->IsLoaded()) {
+        std::size_t count = 1;
+        for (Prj::Page& page : prj->GetPages()) {
+            SetStatusText(std::format("Page {} is croping...", count));
+            prj->SaveCrops(page);
+            count++;
+        }
+        SetStatusText(wxT("Croping finised!"));
+    }
 }
 
 void MainWindow::OnClickListBox(wxCommandEvent& event) {

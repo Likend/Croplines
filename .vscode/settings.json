@@ -5,7 +5,7 @@
     // [[clangd]]
     "clangd.arguments": [
         "--compile-commands-dir=${workspaceFolder}/build",
-        "--query-driver=D:\\MSYS2\\ucrt64\\bin\\g*",
+        "--query-driver=D:/MSYS2/ucrt64/bin/g*",
         "--background-index", // 后台分析并保存索引文件
         "--clang-tidy", // 启用 Clang-Tidy 以提供「静态检查」，下面设置 clang tidy 规则
         "--clang-tidy-checks=performance-*, bugprone-*, misc-*, google-*, modernize-*, readability-*, portability-*",
@@ -20,12 +20,11 @@
         "--pch-storage=memory", // pch 优化的位置(Memory 或 Disk,前者会增加内存开销，但会提升性能)
         "--pretty", // 输出的 JSON 文件更美观
         "--ranking-model=decision_forest", // 建议的排序方案：hueristics (启发式), decision_forest (决策树)
-        // "--query-driver=C:\\Users\\11850\\scoop\\apps\\msys2\\2023-07-18\\mingw64\\bin\\g++*", // windows下的mingw位置
-        "-j=12", // 同时开启的任务数量
+        "-j=20" // 同时开启的任务数量
     ],
     "clangd.fallbackFlags": [
         "-std=c++20",
-        "--query-driver=D:\\MSYS2\\ucrt64\\bin\\g*",
+        // "--query-driver=D:/MSYS2/ucrt64/bin/g*",
         "--target=x86_64-w64-windows-gnu", // 默认使用window gcc(MinGW),如果你是linux，就改成"--target=x86_64-pc-linux-gnu"
     ],
     "clangd.onConfigChanged": "restart", // 重启 clangd 时重载配置,具体方法: F1 + Fn 打开命令面板，然后搜索“clangd: restart”
