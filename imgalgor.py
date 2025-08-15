@@ -17,8 +17,8 @@ def selectArea(image: cv2.typing.MatLike, filer_pix_size: int = 8, expand_size: 
     if height == 0 or width == 0:
         return ((-1, -1), (-1, -1))
     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    img_bin = cv2.threshold(img_gray, thresh=127,
-                            maxval=255, type=cv2.THRESH_BINARY_INV)[1]
+    img_bin = cv2.threshold(img_gray, thresh=0,
+                            maxval=255, type=cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
     contours = cv2.findContours(
         img_bin, mode=cv2.RETR_EXTERNAL, method=cv2.CHAIN_APPROX_NONE)[0]
 
