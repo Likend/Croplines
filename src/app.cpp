@@ -66,6 +66,9 @@ void MainWindow::Load(std::filesystem::path path) {
             CurrentPage(0);
             ShowPage();
         }
+        sld_cfg_border->SetValue(prj->config.border);
+        sld_cfg_pix_filter->SetValue(prj->config.filter_noise_size);
+
         EnableTools(true);
         EnableConfigs(true);
         canvas->SetPrj(*prj);
@@ -120,12 +123,6 @@ void MainWindow::NextPage() {
 void MainWindow::ShowPage() {
     canvas->SetPage(prj->GetPages()[CurrentPage()]);
     canvas->Refresh();
-}
-
-void MainWindow::OnSave(wxCommandEvent& event) {
-    // Handle save action
-    // TODO
-    event.Skip();
 }
 
 void MainWindow::OnLoad(wxCommandEvent& event) {

@@ -7,6 +7,10 @@
 #include <utility>
 #include <vector>
 
+#include <cereal/cereal.hpp>
+#include <cereal/macros.hpp>
+#include <cereal/types/set.hpp>
+#include <cereal/types/vector.hpp>
 #include <opencv2/opencv.hpp>
 
 namespace Croplines {
@@ -14,7 +18,7 @@ namespace Croplines {
 using namespace std::string_literals;
 constexpr const char* VALID_EXTENSION[] = {".png", ".jpg",  ".jpeg",
                                            ".bmp", ".tiff", ".tif"};
-constexpr const char* PROJECT_FILE_NAME = "croplines.cpln";
+constexpr const char* PROJECT_FILE_NAME = "croplines.json";
 constexpr const char* DEFAULT_OUTPUT_DIR = "out";
 
 struct Area {
@@ -36,7 +40,12 @@ class Prj {
         bool IsLoaded() const { return !image.empty(); };
 
        public:
-        const std::filesystem::path image_path;
+        std::filesystem::path image_path;
+
+        Page(std::filesystem::path image_path)
+            : image_path(std::move(image_path)) {}
+
+        Page() = default;
 
         void Close() { image = cv::Mat{}; }
 
@@ -52,9 +61,11 @@ class Prj {
         std::optional<std::set<u32>::iterator> SearchNearestLine(
             u32 key, u32 limit) const;
 
-       private:
-        Page(std::filesystem::path image_path)
-            : image_path(std::move(image_path)) {}
+        template <class Archive>
+        void serialize(Archive& archive) {
+            archive(cereal::make_nvp("image_path", image_path));
+            archive(CEREAL_NVP(crop_lines));
+        }
     };
 
    private:
@@ -70,6 +81,13 @@ class Prj {
         std::filesystem::path output_dir;
         std::uint32_t border;
         std::uint32_t filter_noise_size;
+
+        template <class Archive>
+        void serialize(Archive& archive) {
+            archive(CEREAL_NVP(border));
+            archive(CEREAL_NVP(filter_noise_size));
+            archive(cereal::make_nvp("output_dir", output_dir));
+        }
     } config;
 
    private:
@@ -78,7 +96,7 @@ class Prj {
 
    public:
     static std::optional<Prj> Load(const std::filesystem::path& path);
-    void Save() const;
+    void Save();
     inline bool IsChange() { return is_change; }
 
     cv::Mat LoadPage(Page& page);
@@ -87,6 +105,29 @@ class Prj {
 
    private:
     void Initialize();
+
+   public:
+    template <class Archive>
+    void serialize(Archive& archive) {
+        archive(CEREAL_NVP(config));
+        archive(CEREAL_NVP(pages));
+    }
 };
 
 }  // namespace Croplines
+
+namespace std {
+namespace filesystem {
+template <class Archive>
+inline void load_minimal(const Archive&, std::filesystem::path& path,
+                         const std::string& name) {
+    path = name;
+}
+
+template <class Archive>
+inline std::string save_minimal(const Archive&,
+                                const std::filesystem::path& path) {
+    return path.string();
+}
+}  // namespace filesystem
+}  // namespace std

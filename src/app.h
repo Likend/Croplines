@@ -22,6 +22,9 @@ class MainWindow final : public MainUI {
     void EnableConfigs(bool enable);
 
     void Load(std::filesystem::path path);
+    void Save()  {
+        if (prj) prj->Save();
+    }
     bool Close();  // true if close succesfully; false if cancelled
 
     std::size_t CurrentPage() { return __current_page; }
@@ -37,7 +40,7 @@ class MainWindow final : public MainUI {
 
     void OnPrevPage(wxCommandEvent& event) { PrevPage(); }
     void OnNextPage(wxCommandEvent& event) { NextPage(); }
-    void OnSave(wxCommandEvent& event);
+    void OnSave(wxCommandEvent& event) { Save(); }
     void OnLoad(wxCommandEvent& event);
     void OnZoomPage(wxCommandEvent& event);
     void OnCropCurrPage(wxCommandEvent& event);

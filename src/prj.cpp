@@ -3,18 +3,19 @@
 #include <algorithm>
 #include <cctype>
 #include <climits>
-#include <filesystem>
 #include <fstream>
 #include <ios>
 #include <ranges>
 #include <string_view>
-#include <vector>
 
+#include <cereal/archives/json.hpp>
 #include <opencv2/imgcodecs.hpp>
 
 using namespace Croplines;
 
 namespace fs = std::filesystem;
+
+using Page = Prj::Page;
 
 cv::Mat Prj::LoadPage(Page& page) {
     if (page.IsLoaded()) return page.image;
@@ -38,8 +39,7 @@ bool Prj::SaveCrops(Page& page) {
     // if (!page.IsLoaded()) LoadPage(page);
     cv::Mat image = LoadPage(page);
     std::size_t count = 1;
-    fs::path output_dir = cwd / config.output_dir;
-    fs::create_directories(output_dir);
+    fs::create_directories(config.output_dir);
     for (Area area : GetSelectArea(page)) {
         cv::Mat sub_image = image({area.t, area.b}, {area.l, area.r});
         cv::copyMakeBorder(sub_image, sub_image, config.border, config.border,
@@ -50,7 +50,7 @@ bool Prj::SaveCrops(Page& page) {
         std::string new_file_name =
             std::format("{}-{}.{}", page.image_path.stem().string(), count,
                         page.image_path.extension().string());
-        fs::path file_path = cwd / config.output_dir / new_file_name;
+        fs::path file_path = config.output_dir / new_file_name;
         std::ofstream file(file_path,
                            std::ios_base::binary | std::ios_base::out);
         if (!file) return false;
@@ -124,7 +124,7 @@ const std::vector<Area>& Prj::GetSelectArea(Page& page) {
     return page.select_area;
 }
 
-std::optional<std::set<std::uint32_t>::iterator> Prj::Page::SearchNearestLine(
+std::optional<std::set<std::uint32_t>::iterator> Page::SearchNearestLine(
     std::uint32_t key, std::uint32_t limit) const {
     if (crop_lines.empty()) return std::nullopt;
 
@@ -177,6 +177,23 @@ static std::strong_ordering NaturalCompare(std::string_view a,
     return std::strong_ordering::equal;
 }
 
+static std::vector<std::reference_wrapper<Page>> SortPages(
+    std::vector<Page>& pages) {
+    std::vector<std::reference_wrapper<Page>> pages_sorted;
+    pages_sorted.reserve(pages.size());
+    for (Page& page : pages) {
+        pages_sorted.push_back(std::ref(page));
+    }
+    // natural sort
+    std::ranges::sort(
+        pages_sorted,
+        [](std::string_view s1, std::string_view s2) {
+            return NaturalCompare(s1, s2) < 0;
+        },
+        [](const Page& page) { return page.image_path.filename().string(); });
+    return pages_sorted;
+}
+
 void Prj::Initialize() {
     // Initialize project data with default values
     config.output_dir = DEFAULT_OUTPUT_DIR;
@@ -194,51 +211,36 @@ void Prj::Initialize() {
         Page page(fs::relative(dir_entry.path(), cwd));
         pages.push_back(page);
     }
-
-    pages_sorted.reserve(pages.size());
-    for (Page& page : pages) {
-        pages_sorted.push_back(std::ref(page));
-    }
-    // natural sort
-    std::ranges::sort(
-        pages_sorted,
-        [](std::string_view s1, std::string_view s2) {
-            return NaturalCompare(s1, s2) < 0;
-        },
-        [](const Page& page) { return page.image_path.filename().string(); });
 }
 
 std::optional<Prj> Prj::Load(const fs::path& path) {
-    Prj prj;
-    if (!fs::exists(path)) {
-        return std::nullopt;
-    }
+    if (!fs::exists(path)) return std::nullopt;
     fs::current_path(path);
+    Prj prj;
     prj.cwd = path;
     fs::path prj_path = path / PROJECT_FILE_NAME;
-    if (!fs::exists(prj_path) || !fs::is_regular_file(prj_path)) {
-        prj.Initialize();
-        return prj;
-    }
-
-    // Read the project file and populate `data`
-    std::ifstream file(prj_path);
-    if (!file.is_open()) {
+    if (fs::exists(prj_path) && fs::is_regular_file(prj_path)) {
+        std::ifstream file(prj_path);
+        if (file) {
+            cereal::JSONInputArchive archive(file);
+            archive(cereal::make_nvp("prj", prj));
+            prj.is_change = false;
+        } else {
+            prj.Initialize();
+            prj.is_change = true;
+        }
+    } else {
         prj.Initialize();
         prj.is_change = true;
-        return prj;
     }
-    // TODO
-
+    prj.pages_sorted = SortPages(prj.pages);
     return prj;
 }
 
-void Prj::Save() const {
+void Prj::Save() {
     fs::path prj_path = cwd / PROJECT_FILE_NAME;
-    // std::ofstream
-    // TODO
-
-    if (!fs::exists(config.output_dir)) {
-        fs::create_directory(config.output_dir);
-    }
+    std::ofstream file(prj_path);
+    cereal::JSONOutputArchive archive(file);
+    archive(cereal::make_nvp("prj", *this));
+    is_change = false;
 }
