@@ -5,7 +5,6 @@
 #include <cmath>
 #include <cstdint>
 
-#include <opencv2/opencv.hpp>
 #include <wx/graphics.h>
 
 using namespace Croplines;

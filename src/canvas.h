@@ -1,6 +1,5 @@
 #pragma once
 
-#include <functional>
 #include <optional>
 
 #include <opencv2/opencv.hpp>

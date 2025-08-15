@@ -1,9 +1,0 @@
-# requirements.txt
-
-numpy==1.26.3
-opencv-python==4.9.0.80
-pillow==10.2.0
-PyOpenGL==3.1.7
-six==1.16.0
-wxPython==4.2.1
-pylibtiff==0.6.1

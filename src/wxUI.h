@@ -14,7 +14,6 @@
 #include <wx/statusbr.h>
 #include <wx/string.h>
 #include <wx/xrc/xmlres.h>
-// from wxGLScene import WxGLScene
 #include <wx/frame.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
