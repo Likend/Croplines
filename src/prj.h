@@ -12,6 +12,7 @@
 #include <cereal/types/set.hpp>
 #include <cereal/types/vector.hpp>
 #include <opencv2/opencv.hpp>
+#include <wx/wx.h>
 
 namespace Croplines {
 
@@ -21,9 +22,6 @@ constexpr const char* VALID_EXTENSION[] = {".png", ".jpg",  ".jpeg",
 constexpr const char* PROJECT_FILE_NAME = "croplines.json";
 constexpr const char* DEFAULT_OUTPUT_DIR = "out";
 
-struct Area {
-    int l, t, r, b;
-};
 class Prj {
    public:
     class Page {
@@ -33,11 +31,11 @@ class Prj {
        public:
        private:
         std::set<u32> crop_lines;  // 从小到大排序
-        std::vector<Area> select_area;
+        std::vector<wxRect> select_area;
         bool modified = true;
 
-        cv::Mat image;  // can be empty
-        bool IsLoaded() const { return !image.empty(); };
+        wxImage image;  // can be empty
+        bool IsLoaded() const { return image.IsOk(); };
 
        public:
         std::filesystem::path image_path;
@@ -47,7 +45,7 @@ class Prj {
 
         Page() = default;
 
-        void Close() { image = cv::Mat{}; }
+        void Close() { image.Destroy(); }
 
         const std::set<u32> GetCropLines() const { return crop_lines; }
         void InsertLine(u32 line) {
@@ -99,9 +97,9 @@ class Prj {
     void Save();
     inline bool IsChange() { return is_change; }
 
-    cv::Mat LoadPage(Page& page);
+    wxImage LoadPage(Page& page);
     bool SaveCrops(Page& page);
-    const std::vector<Area>& GetSelectArea(Page& page);
+    const std::vector<wxRect>& GetSelectArea(Page& page);
 
    private:
     void Initialize();

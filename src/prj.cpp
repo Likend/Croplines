@@ -4,11 +4,11 @@
 #include <cctype>
 #include <climits>
 #include <fstream>
-#include <ios>
 #include <ranges>
 #include <string_view>
 
 #include <cereal/archives/json.hpp>
+#include <wx/mstream.h>
 
 using namespace Croplines;
 
@@ -16,44 +16,33 @@ namespace fs = std::filesystem;
 
 using Page = Prj::Page;
 
-cv::Mat Prj::LoadPage(Page& page) {
+wxImage Prj::LoadPage(Page& page) {
     if (page.IsLoaded()) return page.image;
-
-    std::ifstream file(page.image_path,
-                       std::ios_base::binary | std::ios_base::in);
-    if (!file) return {};
-
-    file.seekg(0, std::ios_base::end);
-    std::streamsize size = file.tellg();
-    file.seekg(0, std::ios_base::beg);
-
-    if (size <= 0) return {};
-    std::vector<unsigned char> img_data(size);
-    if (!file.read(reinterpret_cast<char*>(img_data.data()), size)) return {};
-
-    return page.image = cv::imdecode(img_data, cv::IMREAD_COLOR_RGB);
+    page.image.LoadFile(wxString(page.image_path));
+    return page.image;
 }
 
 bool Prj::SaveCrops(Page& page) {
     // if (!page.IsLoaded()) LoadPage(page);
-    cv::Mat image = LoadPage(page);
+    wxImage image = LoadPage(page);
     std::size_t count = 1;
     fs::create_directories(config.output_dir);
-    for (Area area : GetSelectArea(page)) {
-        cv::Mat sub_image = image({area.t, area.b}, {area.l, area.r});
-        cv::copyMakeBorder(sub_image, sub_image, config.border, config.border,
-                           config.border, config.border, cv::BORDER_CONSTANT,
-                           {255, 255, 255});
-        std::vector<std::uint8_t> buf;
-        cv::imencode(page.image_path.extension().string(), sub_image, buf);
-        std::string new_file_name =
+    for (wxRect area : GetSelectArea(page)) {
+        wxImage sub_image = image.GetSubImage(area);
+        wxSize border_size = wxSize{static_cast<int>(config.border),
+                                    static_cast<int>(config.border)};
+        wxBitmap bitmap(area.GetSize() + 2 * border_size);
+        wxMemoryDC memDC;
+        memDC.SelectObject(bitmap);
+        memDC.SetBrush(*wxWHITE_BRUSH);
+        memDC.DrawRectangle(wxPoint{}, bitmap.GetSize());
+        memDC.DrawBitmap(wxBitmap(sub_image), wxPoint{} + border_size);
+
+        fs::path file_path =
+            config.output_dir /
             std::format("{}-{}.{}", page.image_path.stem().string(), count,
                         page.image_path.extension().string());
-        fs::path file_path = config.output_dir / new_file_name;
-        std::ofstream file(file_path,
-                           std::ios_base::binary | std::ios_base::out);
-        if (!file) return false;
-        file.write(reinterpret_cast<char*>(buf.data()), buf.size());
+        bitmap.SaveFile(wxString(file_path), image.GetType());
         count++;
     }
     return true;
@@ -63,10 +52,10 @@ bool Prj::SaveCrops(Page& page) {
     filter_noise_size: 忽略黑像素的大小
     expand_size: 留边空白大小
 */
-static std::optional<Area> CalcuateSelectArea(cv::Mat image,
-                                              std::uint32_t filter_noise_size,
-                                              std::uint32_t expand_size,
-                                              std::uint32_t base_line) {
+static std::optional<wxRect> CalcuateSelectArea(cv::Mat image,
+                                                std::uint32_t filter_noise_size,
+                                                std::uint32_t expand_size,
+                                                std::uint32_t base_line) {
     cv::Mat img_dst;
     cv::cvtColor(image, img_dst, cv::COLOR_RGB2GRAY);
     cv::threshold(img_dst, img_dst, 0, 255,
@@ -109,14 +98,16 @@ static std::optional<Area> CalcuateSelectArea(cv::Mat image,
     if (t < 0) t = 0;
     if (r > image.cols) r = image.cols;
     if (b > image.rows + base_line) b = image.rows + base_line;
-    return Area{l, t, r, b};
+    return wxRect{wxPoint{l, t}, wxPoint{r, b}};
 }
 
-const std::vector<Area>& Prj::GetSelectArea(Page& page) {
+const std::vector<wxRect>& Prj::GetSelectArea(Page& page) {
     if (page.modified) {
         page.modified = false;
         page.select_area.clear();
-        cv::Mat image = LoadPage(page);
+        wxImage ii = LoadPage(page);
+        cv::Mat image(ii.GetHeight(), ii.GetWidth(), CV_8UC3,
+                      static_cast<void*>(ii.GetData()));
         std::uint32_t prev_line = 0;
         for (std::int32_t line : page.crop_lines) {
             cv::Mat sub_image = image.rowRange(prev_line, line);
@@ -127,8 +118,8 @@ const std::vector<Area>& Prj::GetSelectArea(Page& page) {
         }
         std::int32_t line = image.rows;
         cv::Mat sub_image = image.rowRange(prev_line, line);
-        auto area = CalcuateSelectArea(sub_image, config.filter_noise_size,
-                                       config.border, prev_line);
+        auto area = CalcuateSelectArea(sub_image, config.filter_noise_size, 0,
+                                       prev_line);
         if (area) page.select_area.push_back(*area);
     }
     return page.select_area;

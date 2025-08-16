@@ -144,22 +144,21 @@ static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
 }
 
 void Canvas::SetPage(Prj::Page& page) {
-    cv::Mat img = prj->LoadPage(page);
-    if (img.empty()) {
+    wxImage img = prj->LoadPage(page);
+    if (!img.IsOk()) {
         return;
     }
     if (IsLoaded()) {
-        scaleModel.ImageResize(wxSize{img.cols, img.rows});
+        scaleModel.ImageResize(img.GetSize());
     } else {
-        scaleModel =
-            ImageScaleModel{wxSize{img.cols, img.rows}, this->GetClientSize()};
+        scaleModel = ImageScaleModel{img.GetSize(), this->GetClientSize()};
     }
     this->page = &page;
 
     SetCurrent(*context);
     if (texture) glDeleteTextures(1, &texture);
     glGenTextures(1, &texture);
-    SetTextrue(texture, img.data, img.cols, img.rows);
+    SetTextrue(texture, img.GetData(), img.GetWidth(), img.GetHeight());
     Refresh();
 }
 
@@ -235,12 +234,8 @@ void Canvas::OnPaint(wxPaintEvent& event) {
     // 清除缓冲区
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    wxSize window_size = GetClientSize();
-    int win_width = window_size.GetWidth(),
-        win_height = window_size.GetHeight();
-
     // 设置正交投影（模拟视口坐标系）
-    UpdateProjection(window_size);
+    UpdateProjection(GetClientSize());
 
     // 设置投影（透视投影）
     glMatrixMode(GL_MODELVIEW);
@@ -269,15 +264,24 @@ void Canvas::OnPaint(wxPaintEvent& event) {
         glColor4f(0.8, 0.84, 0.8, 0.25);
         for (auto area : prj->GetSelectArea(*page)) {
             glBegin(GL_QUADS);
-            glVertex2d(area.l, area.t);
-            glVertex2d(area.l, area.b);
-            glVertex2d(area.r, area.b);
-            glVertex2d(area.r, area.t);
+            glVertex2d(area.GetLeft(), area.GetTop());
+            glVertex2d(area.GetLeft(), area.GetBottom());
+            glVertex2d(area.GetRight(), area.GetBottom());
+            glVertex2d(area.GetRight(), area.GetTop());
             glEnd();
         }
 
+        auto DrawLine = [&size, this](int width, double line_y) {
+            double w = FromDIP(width) / scaleModel.scale;
+            glBegin(GL_QUADS);
+            glVertex2d(0, line_y - w);
+            glVertex2d(0, line_y + w);
+            glVertex2d(size.GetWidth(), line_y + w);
+            glVertex2d(size.GetWidth(), line_y - w);
+            glEnd();
+        };
+
         // draw crop lines
-        glBegin(GL_LINES);
         std::optional<std::uint32_t> deleting_line;
         if (is_deleting && mouse_position) {
             int y = mouse_position->y;
@@ -286,19 +290,15 @@ void Canvas::OnPaint(wxPaintEvent& event) {
                 page->SearchNearestLine(y, FromDIP(5 / scaleModel.scale + 1));
             if (search_line) {
                 deleting_line = **search_line;
-                glLineWidth(8);
                 glColor4f(0.15, 0.58, 0.36, 0.5);
-                glVertex2d(0, *deleting_line);
-                glVertex2d(size.GetWidth(), *deleting_line);
+                DrawLine(4, *deleting_line);
             }
         }
 
-        glLineWidth(1000);
         glColor4f(0.30, 0.74, 0.52, 0.5);
         for (std::uint32_t line : page->GetCropLines()) {
             if (deleting_line == line) continue;
-            glVertex2d(0, line);
-            glVertex2d(size.GetWidth(), line);
+            DrawLine(2, line);
         }
 
         // draw mouse line
@@ -308,10 +308,8 @@ void Canvas::OnPaint(wxPaintEvent& event) {
             else
                 glColor4f(0.34, 0.61, 0.84, 0.5);
             double y = scaleModel.ReverseTransformY(mouse_position->y);
-            glVertex2d(0, y);
-            glVertex2d(size.GetWidth(), y);
+            DrawLine(2, y);
         }
-        glEnd();
     }
 
     SwapBuffers();
