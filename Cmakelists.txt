@@ -18,6 +18,7 @@ endif()
 find_package(wxWidgets REQUIRED aui core base gl)
 find_package(Eigen3 REQUIRED) # required by opencv
 find_package(OpenCV REQUIRED)
+find_package(OpenMP REQUIRED)
 include(${wxWidgets_USE_FILE})
 include_directories(${OpenCV_INCLUDE_DIRS})
 
@@ -35,6 +36,10 @@ target_link_libraries(Croplines ${wxWidgets_LIBRARIES})
 target_link_libraries(Croplines ${OpenCV_LIBS})
 target_link_libraries(Croplines opengl32)
 
+
 if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
+    target_link_libraries(Croplines OpenMP::OpenMP_CXX -static-libgcc
+            -static-libstdc++
+            -Wl,-Bstatic -lgomp -Wl,-Bdynamic)
     target_link_libraries(Croplines -Wl,-Bstatic stdc++ pthread -Wl,-Bdynamic) # 解决libwinpthread-1.dll依赖问题
 endif()
