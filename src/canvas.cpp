@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdint>
 
+#include <GL/gl.h>
 #include <wx/graphics.h>
 
 using namespace Croplines;
@@ -115,19 +116,32 @@ bool ImageScaleModel::IsInsideImage(wxRealPoint worldPoint) const {
 }
 
 Canvas::Canvas(wxWindow* parent, wxWindowID id)
-    : wxWindow(parent, id, wxDefaultPosition, wxDefaultSize,
-               wxVSCROLL | wxHSCROLL) {
+    : wxGLCanvas(parent, id, nullptr, wxDefaultPosition, wxDefaultSize,
+                 wxFULL_REPAINT_ON_RESIZE | wxVSCROLL | wxHSCROLL) {
     AlwaysShowScrollbars();
 
     // // disable on default
     SetScrollbar(wxHORIZONTAL, -1, -1, -1);
     SetScrollbar(wxVERTICAL, -1, -1, -1);
 
-    // cv::ocl::setUseOpenCL(true);
-    cv::setUseOptimized(true);
+    context = new wxGLContext(this);
 }
 
-Canvas::~Canvas() {}
+Canvas::~Canvas() {
+    if (texture) glDeleteTextures(1, &texture);
+    if (context) delete context;
+}
+
+static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // 解决glTexImage2D崩溃问题
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, pixels);
+}
 
 void Canvas::SetPage(Prj::Page& page) {
     cv::Mat img = prj->LoadPage(page);
@@ -142,12 +156,10 @@ void Canvas::SetPage(Prj::Page& page) {
     }
     this->page = &page;
 
-    // imageSrc = image;
-    // cv::Mat img(image.GetHeight(), image.GetWidth(), CV_8UC3,
-    //             static_cast<void*>(image.GetData()));
-    // uimageSrc = img.getUMat(cv::ACCESS_READ);
-    img.copyTo(uimageSrc);
-    imageModified = true;
+    SetCurrent(*context);
+    if (texture) glDeleteTextures(1, &texture);
+    glGenTextures(1, &texture);
+    SetTextrue(texture, img.data, img.cols, img.rows);
     Refresh();
 }
 
@@ -173,55 +185,99 @@ void Canvas::UpdateScrollbars() {
     }
 }
 
+static void InitGL() {
+    // 设置OpenGL状态
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_TEXTURE_2D);
+    // 设置深度测试函数
+    glDepthFunc(GL_LEQUAL);
+    // GL_SMOOTH(光滑着色)/GL_FLAT(恒定着色)
+    glShadeModel(GL_SMOOTH);
+    // 开启混合
+    glEnable(GL_BLEND);
+    // 设置混合函数
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_ALPHA_TEST);  // 启用Alpha测试
+    // 设置Alpha测试条件为大于0.05则通过
+    glAlphaFunc(GL_GREATER, 0.05);
+    // 设置逆时针索引为正面（GL_CCW/GL_CW）
+    glFrontFace(GL_CW);
+    // 开启线段反走样
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+}
+
+void UpdateProjection(wxSize size) {
+    if (size.GetWidth() <= 0 || size.GetHeight() <= 0) return;
+
+    glViewport(0, 0, size.GetWidth(), size.GetHeight());
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, size.GetWidth(), size.GetHeight(), 0, -1, 1);
+}
+
 void Canvas::OnPaint(wxPaintEvent& event) {
-    // draw
     wxPaintDC dc(this);
 
-    wxSize windowsSize = dc.GetSize();
-    if (windowsSize.GetHeight() == 0 || windowsSize.GetWidth() == 0) {
-        return;
+    // 首次绘制时创建上下文
+    // if (!context) {
+    // }
+
+    SetCurrent(*context);
+
+    // 初始化OpenGL（首次绘制时执行）
+    if (!initialized) {
+        InitGL();
+        initialized = true;
     }
+
+    // 清除缓冲区
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    wxSize window_size = GetClientSize();
+    int win_width = window_size.GetWidth(),
+        win_height = window_size.GetHeight();
+
+    // 设置正交投影（模拟视口坐标系）
+    UpdateProjection(window_size);
+
+    // 设置投影（透视投影）
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    glTranslated(scaleModel.offset.x, scaleModel.offset.y, 0);
+    glScalef(scaleModel.scale, scaleModel.scale, 1.0);
+
     if (IsLoaded()) {
-        if (scaleModel.modified || imageModified) {
-            cv::UMat uimageDst(windowsSize.GetHeight(), windowsSize.GetWidth(),
-                               CV_8UC3);
-            cv::warpAffine(uimageSrc, uimageDst,
-                           scaleModel.GetTransformMatrix(), uimageDst.size(),
-                           cv::INTER_LINEAR);
-            cv::Mat imageDst = uimageDst.getMat(cv::ACCESS_READ);
+        // 绑定纹理
+        wxSize size = scaleModel.imageSize;
+        glBegin(GL_QUADS);
+        glColor3f(1.0f, 1.0f, 1.0f);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexCoord2d(0, 0);
+        glVertex2d(0, 0);
+        glTexCoord2d(1, 0);
+        glVertex2d(size.GetWidth(), 0);
+        glTexCoord2d(1, 1);
+        glVertex2d(size.GetWidth(), size.GetHeight());
+        glTexCoord2d(0, 1);
+        glVertex2d(0, size.GetHeight());
+        glEnd();
 
-            drawBmp = wxBitmap(wxImage(windowsSize, imageDst.data, true));
+        UpdateScrollbars();
 
-            UpdateScrollbars();
-            scaleModel.modified = false;
-            imageModified = false;
-        }
-        dc.DrawBitmap(drawBmp, 0, 0);
-
-        // Create graphics context from it
-        wxGraphicsContext* gc = wxGraphicsContext::Create(dc);
-        if (!gc) return;
-
-        // draw crop areas
-        gc->SetPen({wxColor(0, 0, 0, 0), 0});
-        gc->SetBrush({wxColor(204, 210, 204, 56)});
+        glColor4f(0.8, 0.84, 0.8, 0.25);
         for (auto area : prj->GetSelectArea(*page)) {
-            auto lt = scaleModel.Transform(
-                {static_cast<double>(area.l), static_cast<double>(area.t)});
-            auto rb = scaleModel.Transform(
-                {static_cast<double>(area.r), static_cast<double>(area.b)});
-            auto size = rb - lt;
-            gc->DrawRectangle(lt.x, lt.y, size.x, size.y);
+            glBegin(GL_QUADS);
+            glVertex2d(area.l, area.t);
+            glVertex2d(area.l, area.b);
+            glVertex2d(area.r, area.b);
+            glVertex2d(area.r, area.t);
+            glEnd();
         }
-        gc->SetBrush(wxNullBrush);
-
-        // draw lines
-        double l = scaleModel.offset.x;
-        double r = scaleModel.TransformX(scaleModel.imageSize.GetWidth());
-        l = std::clamp(l, 0.0, static_cast<double>(windowsSize.GetWidth()));
-        r = std::clamp(r, 0.0, static_cast<double>(windowsSize.GetWidth()));
 
         // draw crop lines
+        glBegin(GL_LINES);
         std::optional<std::uint32_t> deleting_line;
         if (is_deleting && mouse_position) {
             int y = mouse_position->y;
@@ -230,35 +286,42 @@ void Canvas::OnPaint(wxPaintEvent& event) {
                 page->SearchNearestLine(y, FromDIP(5 / scaleModel.scale + 1));
             if (search_line) {
                 deleting_line = **search_line;
-                gc->SetPen({wxColor(38, 148, 93, 128), FromDIP(4)});
-                double y = scaleModel.TransformY(*deleting_line);
-                gc->StrokeLine(l, y, r, y);
+                glLineWidth(8);
+                glColor4f(0.15, 0.58, 0.36, 0.5);
+                glVertex2d(0, *deleting_line);
+                glVertex2d(size.GetWidth(), *deleting_line);
             }
         }
-        gc->SetPen({wxColor(78, 188, 133, 128), FromDIP(2)});
+
+        glLineWidth(1000);
+        glColor4f(0.30, 0.74, 0.52, 0.5);
         for (std::uint32_t line : page->GetCropLines()) {
             if (deleting_line == line) continue;
-            double y = scaleModel.TransformY(line);
-            if (y >= 0 && y <= windowsSize.GetHeight()) {
-                gc->StrokeLine(l, y, r, y);
-            }
+            glVertex2d(0, line);
+            glVertex2d(size.GetWidth(), line);
         }
 
         // draw mouse line
         if (mouse_position) {
             if (is_deleting)
-                gc->SetPen({wxColor(229, 20, 0, 128), FromDIP(2)});
+                glColor4f(0.90, 0.08, 0, 0.5);
             else
-                gc->SetPen({wxColor(86, 156, 214, 128), FromDIP(2)});
-            int y = mouse_position->y;
-            gc->StrokeLine(l, y, r, y);
+                glColor4f(0.34, 0.61, 0.84, 0.5);
+            double y = scaleModel.ReverseTransformY(mouse_position->y);
+            glVertex2d(0, y);
+            glVertex2d(size.GetWidth(), y);
         }
-
-        delete gc;
+        glEnd();
     }
+
+    SwapBuffers();
 }
 
 void Canvas::OnSize(wxSizeEvent& event) {
+    if (context) {
+        SetCurrent(*context);
+        UpdateProjection(GetClientSize());
+    }
     if (IsLoaded()) scaleModel.WindowResize(event.GetSize());
     Refresh();
 }

@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
+#include <wx/glcanvas.h>
 #include <wx/wx.h>
 
 #include "prj.h"
@@ -65,13 +66,15 @@ class ImageScaleModel {
     bool modified = true;
 };
 
-class Canvas : public wxWindow {
+class Canvas : public wxGLCanvas {
    public:
     Prj* prj = nullptr;
     Prj::Page* page = nullptr;
     ImageScaleModel scaleModel;
 
    private:
+    wxGLContext* context = nullptr;
+    GLuint texture;
     cv::UMat uimageSrc;
     wxImage imageDst;
     bool imageModified = false;
@@ -89,7 +92,7 @@ class Canvas : public wxWindow {
     bool is_mouse_capture = false;
     std::optional<wxPoint> mouse_drag_start;
     std::optional<wxPoint> mouse_position;
-
+    bool initialized = false;
     wxBitmap drawBmp;
 
    private:

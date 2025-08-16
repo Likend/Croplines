@@ -15,7 +15,7 @@ if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
 else()
     set(wxWidgets_USE_STATIC ON)
 endif()
-find_package(wxWidgets REQUIRED aui core base)
+find_package(wxWidgets REQUIRED aui core base gl)
 find_package(Eigen3 REQUIRED) # required by opencv
 find_package(OpenCV REQUIRED)
 include(${wxWidgets_USE_FILE})
@@ -33,6 +33,7 @@ else()
 endif()
 target_link_libraries(Croplines ${wxWidgets_LIBRARIES})
 target_link_libraries(Croplines ${OpenCV_LIBS})
+target_link_libraries(Croplines opengl32)
 
 if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
     target_link_libraries(Croplines -Wl,-Bstatic stdc++ pthread -Wl,-Bdynamic) # 解决libwinpthread-1.dll依赖问题
