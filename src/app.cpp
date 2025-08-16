@@ -41,6 +41,7 @@ void MainWindow::EnableTools(bool state) {
     toolbar->EnableTool(btnid_ZOOM_PAGE, state);
     toolbar->EnableTool(btnid_CROP_CURR_PAGE, state);
     toolbar->EnableTool(btnid_CROP_ALL_PAGE, state);
+    toolbar->Refresh();
 }
 
 void MainWindow::EnableConfigs(bool enable) {
@@ -75,21 +76,25 @@ void MainWindow::Load(std::filesystem::path path) {
     }
 }
 
+static bool ShowCloseDialog(wxWindow* parent, Prj& prj) {
+    wxMessageDialog dialog(parent, wxT("项目已更改，是否保存？"),
+                           wxASCII_STR(wxMessageBoxCaptionStr),
+                           wxICON_QUESTION | wxYES_NO | wxCANCEL);
+    switch (dialog.ShowModal()) {
+        case wxID_YES:
+            prj.Save();
+        case wxID_NO:
+            return true;
+
+        case wxID_CANCEL:
+        default:
+            return false;
+    }
+}
+
 bool MainWindow::Close() {
     if (prj && prj->IsChange()) {
-        wxMessageDialog dialog(this, wxT("项目已更改，是否保存？"),
-                               wxASCII_STR(wxMessageBoxCaptionStr),
-                               wxICON_QUESTION | wxYES_NO | wxCANCEL);
-        switch (dialog.ShowModal()) {
-            case wxID_YES:
-                prj->Save();
-            case wxID_NO:
-                break;
-
-            case wxID_CANCEL:
-            default:
-                return false;
-        }
+        if (!ShowCloseDialog(this, *prj)) return false;
     }
     Destroy();
     return true;
@@ -126,6 +131,9 @@ void MainWindow::ShowPage() {
 }
 
 void MainWindow::OnLoad(wxCommandEvent& event) {
+    if (prj && prj->IsChange()) {
+        if (!ShowCloseDialog(this, *prj)) return;
+    }
     wxDirDialog dir_dialog(this, wxT("选择目录"), wxEmptyString,
                            wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
     auto result = dir_dialog.ShowModal();

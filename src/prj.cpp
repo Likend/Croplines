@@ -9,7 +9,6 @@
 #include <string_view>
 
 #include <cereal/archives/json.hpp>
-#include <opencv2/imgcodecs.hpp>
 
 using namespace Croplines;
 
@@ -79,13 +78,25 @@ static std::optional<Area> CalcuateSelectArea(cv::Mat image,
     bool has_point = false;
     for (const auto& contour : contours) {
         if (cv::contourArea(contour) >= filter_noise_size) {
+            int x_min_inner = x_min, x_max_inner = x_max, y_min_inner = y_min,
+                y_max_inner = y_max;
             for (auto& point : contour) {
-                if (point.x < x_min) x_min = point.x;
-                if (point.x > x_max) x_max = point.x;
-                if (point.y < y_min) y_min = point.y;
-                if (point.y > y_max) y_max = point.y;
+                if (point.x == 0 || point.x == image.cols - 1 || point.y == 0 ||
+                    point.y == image.rows - 1) {
+                    goto skip_contour;
+                }
+                if (point.x < x_min_inner) x_min_inner = point.x;
+                if (point.x > x_max_inner) x_max_inner = point.x;
+                if (point.y < y_min_inner) y_min_inner = point.y;
+                if (point.y > y_max_inner) y_max_inner = point.y;
             }
+            x_min = x_min_inner;
+            x_max = x_max_inner;
+            y_min = y_min_inner;
+            y_max = y_max_inner;
             has_point = true;
+        skip_contour:
+            (void)0;
         }
     }
     if (!has_point) return std::nullopt;
@@ -109,7 +120,6 @@ const std::vector<Area>& Prj::GetSelectArea(Page& page) {
         std::uint32_t prev_line = 0;
         for (std::int32_t line : page.crop_lines) {
             cv::Mat sub_image = image.rowRange(prev_line, line);
-            // cv::imshow("sub", sub_image);
             auto area = CalcuateSelectArea(sub_image, config.filter_noise_size,
                                            0, prev_line);
             if (area) page.select_area.push_back(*area);
@@ -211,6 +221,7 @@ void Prj::Initialize() {
         Page page(fs::relative(dir_entry.path(), cwd));
         pages.push_back(page);
     }
+    is_change = true;
 }
 
 std::optional<Prj> Prj::Load(const fs::path& path) {
@@ -227,11 +238,9 @@ std::optional<Prj> Prj::Load(const fs::path& path) {
             prj.is_change = false;
         } else {
             prj.Initialize();
-            prj.is_change = true;
         }
     } else {
         prj.Initialize();
-        prj.is_change = true;
     }
     prj.pages_sorted = SortPages(prj.pages);
     return prj;

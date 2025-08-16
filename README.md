@@ -13,3 +13,42 @@ Croplines目前已经实现了裁剪、可缩放和可移动的画布显示图�
 ## 快捷键
 
 键盘上下键实现翻页
+
+## 编译
+
+### OpenCV 编译选项
+
+```
+Commandline options:
+-DBUILD_SHARED_LIBS:BOOL="0" -DOPENCV_GAPI_GSTREAMER:BOOL="0" -DBUILD_opencv_calib3d:BOOL="1" -DBUILD_opencv_videoio:BOOL="0" -DBUILD_opencv_java:BOOL="0" -DWITH_FFMPEG:BOOL="0" -DWITH_OPENMP:BOOL="1" -DBUILD_opencv_ts:BOOL="0" -DBUILD_TESTS:BOOL="0" -DOPENCL_LIBRARY:STRING="" -DWITH_EIGEN:BOOL="0" -DBUILD_opencv_python_tests:BOOL="0" -DLAPACK_LIBRARIES:STRING="" -DBUILD_opencv_gapi:BOOL="0" -DBUILD_opencv_python_bindings_generator:BOOL="0" -DBUILD_opencv_video:BOOL="0" -DWITH_LAPACK:BOOL="0" -DVIDEOIO_ENABLE_PLUGINS:BOOL="0" -DBUILD_JAVA:BOOL="0" -DBUILD_opencv_java_bindings_generator:BOOL="0" -DWITH_AVIF:BOOL="0" -DWITH_GSTREAMER:BOOL="0" -DWITH_DIRECTML:BOOL="0" -DWITH_OPENEXR:BOOL="0" -DBUILD_opencv_python3:BOOL="0" 
+
+
+Cache file:
+BUILD_SHARED_LIBS:BOOL=0
+OPENCV_GAPI_GSTREAMER:BOOL=0
+BUILD_opencv_calib3d:BOOL=1
+BUILD_opencv_videoio:BOOL=0
+BUILD_opencv_java:BOOL=0
+WITH_FFMPEG:BOOL=0
+WITH_OPENMP:BOOL=1
+BUILD_opencv_ts:BOOL=0
+BUILD_TESTS:BOOL=0
+OPENCL_LIBRARY:STRING=
+WITH_EIGEN:BOOL=0
+BUILD_opencv_python_tests:BOOL=0
+LAPACK_LIBRARIES:STRING=
+BUILD_opencv_gapi:BOOL=0
+BUILD_opencv_python_bindings_generator:BOOL=0
+BUILD_opencv_video:BOOL=0
+WITH_LAPACK:BOOL=0
+VIDEOIO_ENABLE_PLUGINS:BOOL=0
+BUILD_JAVA:BOOL=0
+BUILD_opencv_java_bindings_generator:BOOL=0
+WITH_AVIF:BOOL=0
+WITH_GSTREAMER:BOOL=0
+WITH_DIRECTML:BOOL=0
+WITH_OPENEXR:BOOL=0
+BUILD_opencv_python3:BOOL=0
+```
+
+建议使用 MSYS2 环境。安装 wxWidgets 与 Cereal 库。
