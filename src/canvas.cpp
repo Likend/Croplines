@@ -379,9 +379,9 @@ void Canvas::OnMouseRightUp(wxMouseEvent& event) {
     if (is_deleting) {
         std::optional<std::set<std::uint32_t>::iterator> it =
             page->SearchNearestLine(y, FromDIP(5 / scaleModel.scale + 1));
-        if (it) page->EraseLine(*it);
+        if (it) prj->EraseLine(*it, *page);
     } else {
-        page->InsertLine(y);
+        prj->InsertLine(y, *page);
     }
     Refresh();
 }

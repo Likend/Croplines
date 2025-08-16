@@ -48,14 +48,6 @@ class Prj {
         void Close() { image.Destroy(); }
 
         const std::set<u32> GetCropLines() const { return crop_lines; }
-        void InsertLine(u32 line) {
-            crop_lines.insert(line);
-            modified = true;
-        }
-        void EraseLine(decltype(crop_lines)::iterator it) {
-            crop_lines.erase(it);
-            modified = true;
-        }
         std::optional<std::set<u32>::iterator> SearchNearestLine(
             u32 key, u32 limit) const;
 
@@ -96,10 +88,21 @@ class Prj {
     static std::optional<Prj> Load(const std::filesystem::path& path);
     void Save();
     inline bool IsChange() { return is_change; }
+    inline void Change() { is_change = true; }
 
     wxImage LoadPage(Page& page);
     bool SaveCrops(Page& page);
     const std::vector<wxRect>& GetSelectArea(Page& page);
+    void InsertLine(std::uint32_t line, Page& page) {
+        page.crop_lines.insert(line);
+        page.modified = true;
+        is_change = true;
+    }
+    void EraseLine(decltype(Page::crop_lines)::iterator it, Page& page) {
+        page.crop_lines.erase(it);
+        page.modified = true;
+        is_change = true;
+    }
 
    private:
     void Initialize();

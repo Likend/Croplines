@@ -22,7 +22,7 @@ class MainWindow final : public MainUI {
     void EnableConfigs(bool enable);
 
     void Load(std::filesystem::path path);
-    void Save()  {
+    void Save() {
         if (prj) prj->Save();
     }
     bool Close();  // true if close succesfully; false if cancelled
@@ -52,9 +52,11 @@ class MainWindow final : public MainUI {
     void OnClickListBox(wxCommandEvent& event);
     void OnChnageCfgFilerPixSize(wxCommandEvent& event) {
         prj->config.filter_noise_size = event.GetInt();
+        prj->Change();
     }
     void OnChangeCfgBorder(wxCommandEvent& event) {
         prj->config.border = event.GetInt();
+        prj->Change();
     }
 
     wxDECLARE_EVENT_TABLE();
