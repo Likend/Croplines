@@ -242,10 +242,6 @@ void UpdateProjection(wxSize size) {
 void Canvas::OnPaint(wxPaintEvent& event) {
     wxPaintDC dc(this);
 
-    // 首次绘制时创建上下文
-    // if (!context) {
-    // }
-
     SetCurrent(*context);
 
     // 初始化OpenGL（首次绘制时执行）

@@ -15,15 +15,13 @@ SliderWithSpin::SliderWithSpin(wxWindow* parent, wxWindowID id,
                                const wxSize& size)
     : wxPanel(parent, id, pos, size) {
     m_label = new wxStaticText(this, wxID_ANY, label);
-    m_value_text = new wxStaticText(this, wxID_ANY, std::format("{:3}", value));
     m_slider = new wxSlider(this, SLIDER_ID, value, minValue, maxValue);
-    m_spin = new wxSpinButton(this, SPIN_ID);
-    m_spin->SetMaxSize(FromDIP(wxSize(20, -1)));
+    m_spin = new wxSpinCtrl(this, SPIN_ID, wxEmptyString, wxDefaultPosition,
+                            wxDefaultSize, wxSP_ARROW_KEYS, minValue, maxValue,
+                            value);
 
     wxBoxSizer* bSizer = new wxBoxSizer(wxHORIZONTAL);
     bSizer->Add(m_label, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-    bSizer->Add(m_value_text, 0,
-                wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM | wxLEFT, 5);
     bSizer->Add(m_slider, 1, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 5);
     bSizer->Add(m_spin, 0, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM | wxRIGHT,
                 5);
@@ -32,7 +30,7 @@ SliderWithSpin::SliderWithSpin(wxWindow* parent, wxWindowID id,
 }
 
 bool SliderWithSpin::Enable(bool enable) {
-    wxWindow* const items[] = {m_label, m_value_text, m_slider, m_spin};
+    wxWindow* const items[] = {m_label, m_slider, m_spin};
     const bool prevEnable = IsEnabled();
     bool ret = wxPanel::Enable(enable);
     if (!ret) {
@@ -59,7 +57,6 @@ void SliderWithSpin::SetValue(int value) {
     if (m_slider->GetValue() != value) {
         m_slider->SetValue(GetValue());
     }
-    m_value_text->SetLabelText(std::format("{:3}", value));
 }
 
 void SliderWithSpin::CallEvent(int value) {
@@ -74,7 +71,6 @@ void SliderWithSpin::OnSliderChanged(wxCommandEvent& event) {
     if (m_spin->GetValue() != value) {
         m_spin->SetValue(value);
     }
-    m_value_text->SetLabelText(std::format("{:3}", value));
     this->value = value;
     CallEvent(value);
 }
@@ -84,7 +80,6 @@ void SliderWithSpin::OnSpinChanged(wxSpinEvent& event) {
     if (m_slider->GetValue() != value) {
         m_slider->SetValue(value);
     }
-    m_value_text->SetLabelText(std::format("{:3}", value));
     this->value = value;
     CallEvent(value);
 }
@@ -92,7 +87,7 @@ void SliderWithSpin::OnSpinChanged(wxSpinEvent& event) {
 // clang-format off
 wxBEGIN_EVENT_TABLE(SliderWithSpin, wxPanel)
     EVT_SLIDER(SLIDER_ID, SliderWithSpin::OnSliderChanged)
-    EVT_SPIN(SPIN_ID, SliderWithSpin::OnSpinChanged) 
+    EVT_SPINCTRL(SPIN_ID, SliderWithSpin::OnSpinChanged) 
 wxEND_EVENT_TABLE();
 // clang-format on
 

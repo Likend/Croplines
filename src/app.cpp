@@ -210,7 +210,7 @@ IMPLEMENT_APP(MyApp)
 // 初始化程序
 bool MyApp::OnInit() {
     SetAppearance(Appearance::System);
-    wxImage::AddHandler(new wxBMPHandler);
+    // wxImage::AddHandler(new wxBMPHandler);
     wxImage::AddHandler(new wxTIFFHandler);
     wxImage::AddHandler(new wxJPEGHandler);
     wxImage::AddHandler(new wxPNGHandler);

@@ -1,14 +1,13 @@
 #pragma once
-#include <wx/spinbutt.h>
+#include <wx/spinctrl.h>
 #include <wx/wx.h>
 
 namespace Croplines {
 class SliderWithSpin : public wxPanel {
    private:
     wxStaticText* m_label;
-    wxStaticText* m_value_text;
     wxSlider* m_slider;
-    wxSpinButton* m_spin;
+    wxSpinCtrl* m_spin;
 
    public:
     SliderWithSpin(wxWindow* parent, wxWindowID id, const wxString& label,
