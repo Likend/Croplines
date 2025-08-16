@@ -8,12 +8,9 @@
 #include <GL/gl.h>
 #include <wx/graphics.h>
 
-using namespace Croplines;
+#include "config.h"
 
-constexpr double ZOOM_IN_RATE = 1.2;
-constexpr double ZOOM_OUT_RATE = 1 / ZOOM_IN_RATE;
-constexpr double ZOOM_MIN = 0.1;
-constexpr double ZOOM_MAX = 100;
+using namespace Croplines;
 
 ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize,
                                  double scale)
@@ -45,10 +42,10 @@ void ImageScaleModel::Clamp() {
 
 void ImageScaleModel::Scale(double factor, wxPoint center) {
     double scaleNew = scale * factor;
-    if (scaleNew > ZOOM_MAX) {
-        factor = ZOOM_MAX / scale;
-    } else if (scaleNew < ZOOM_MIN) {
-        factor = ZOOM_MIN / scale;
+    if (scaleNew > Config::zoom_max) {
+        factor = Config::zoom_max / scale;
+    } else if (scaleNew < Config::zoom_min) {
+        factor = Config::zoom_min / scale;
     }
     scale *= factor;
     offset = center + factor * (offset - center);
@@ -58,7 +55,7 @@ void ImageScaleModel::Scale(double factor, wxPoint center) {
 }
 
 void ImageScaleModel::ScaleTo(double scale, wxPoint center) {
-    scale = std::clamp(scale, ZOOM_MIN, ZOOM_MAX);
+    scale = std::clamp(scale, Config::zoom_min, Config::zoom_max);
     double factor = scale / this->scale;
     this->scale = scale;
     offset = center + factor * (offset - center);
@@ -160,6 +157,32 @@ void Canvas::SetPage(Prj::Page& page) {
     glGenTextures(1, &texture);
     SetTextrue(texture, img.GetData(), img.GetWidth(), img.GetHeight());
     Refresh();
+}
+
+void Canvas::ZoomIn() {
+    if (!IsLoaded()) return;
+    scaleModel.Scale(Config::zoom_in_rate);
+    Refresh();
+}
+
+void Canvas::ZoomOut() {
+    if (!IsLoaded()) return;
+    scaleModel.Scale(Config::zoom_out_rate);
+    Refresh();
+}
+
+void Canvas::ZoomFit() {
+    if (!IsLoaded()) return;
+    scaleModel.ScaleTo(scaleModel.GetScaleSuitesPage());
+    scaleModel.MoveToCenter();
+    Refresh();
+}
+
+void Canvas::Zoom(double scale) {
+    if (IsLoaded()) {
+        scaleModel.ScaleTo(scale);
+        Refresh();
+    }
 }
 
 void Canvas::UpdateScrollbars() {
@@ -329,9 +352,9 @@ void Canvas::OnMouseWheel(wxMouseEvent& event) {
 
     double factor;
     if (event.GetWheelRotation() > 0) {  // zoom in
-        factor = ZOOM_IN_RATE;
+        factor = Config::zoom_in_rate;
     } else {  // zoom out
-        factor = ZOOM_OUT_RATE;
+        factor = Config::zoom_out_rate;
     }
     scaleModel.Scale(factor, event.GetPosition());
     Refresh();

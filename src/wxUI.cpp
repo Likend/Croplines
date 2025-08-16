@@ -18,26 +18,26 @@ MainUI::MainUI(wxWindow* parent, wxWindowID id, const wxString& title,
         wxSystemSettings::GetColour(wxSYS_COLOUR_WINDOW));
 
     btn_prev_page = toolbar->AddTool(
-        btnid_PREV_PAGE, wxT("上一页"), wxBITMAP_PNG(IMG_PREV_PAGE),
-        wxNullBitmap, wxITEM_NORMAL, wxT("上一页"), wxT("上一页"), NULL);
+        wxID_UP, wxT("上一页"), wxBITMAP_PNG(IMG_PREV_PAGE), wxNullBitmap,
+        wxITEM_NORMAL, wxT("上一页"), wxT("上一页"), NULL);
 
     btn_next_page = toolbar->AddTool(
-        btnid_NEXT_PAGE, wxT("下一页"), wxBITMAP_PNG(IMG_NEXT_PAGE),
-        wxNullBitmap, wxITEM_NORMAL, wxT("下一页"), wxT("下一页"), NULL);
+        wxID_DOWN, wxT("下一页"), wxBITMAP_PNG(IMG_NEXT_PAGE), wxNullBitmap,
+        wxITEM_NORMAL, wxT("下一页"), wxT("下一页"), NULL);
 
     toolbar->AddSeparator();
 
-    btn_save = toolbar->AddTool(btnid_SAVE, wxT("保存"), wxBITMAP_PNG(IMG_SAVE),
+    btn_save = toolbar->AddTool(wxID_SAVE, wxT("保存"), wxBITMAP_PNG(IMG_SAVE),
                                 wxNullBitmap, wxITEM_NORMAL, wxT("保存"),
                                 wxT("保存"), NULL);
 
-    btn_load = toolbar->AddTool(btnid_LOAD, wxT("载入"), wxBITMAP_PNG(IMG_LOAD),
+    btn_load = toolbar->AddTool(wxID_OPEN, wxT("载入"), wxBITMAP_PNG(IMG_LOAD),
                                 wxNullBitmap, wxITEM_NORMAL, wxT("载入"),
                                 wxT("载入"), NULL);
 
     toolbar->AddSeparator();
 
-    btn_zoom_page = toolbar->AddTool(btnid_ZOOM_PAGE, wxT("缩放合适大小"),
+    btn_zoom_page = toolbar->AddTool(wxID_ZOOM_FIT, wxT("缩放合适大小"),
                                      wxBITMAP_PNG(IMG_ZOOM_PAGE), wxNullBitmap,
                                      wxITEM_NORMAL, wxT("缩放合适大小"),
                                      wxT("缩放合适大小"), NULL);

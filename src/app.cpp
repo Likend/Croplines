@@ -1,25 +1,24 @@
 #include "app.h"
 
 #include <algorithm>
-#include <iterator>
 
 #include <opencv2/opencv.hpp>
 #include <wx/event.h>
 #include <wx/wx.h>
 
-#include "wxUI.h"
+#include "ctrl.h"
 
 using namespace Croplines;
 
-// 设置加速器表
-const static wxAcceleratorEntry accel_entries[] = {
-    {wxACCEL_CTRL, 'S', btnid_SAVE},
-    {wxACCEL_CTRL, 'O', btnid_LOAD},
-    {wxACCEL_CTRL, 'W', btnid_CLOSE},
-    {wxACCEL_NORMAL, WXK_UP, btnid_PREV_PAGE},
-    {wxACCEL_NORMAL, WXK_DOWN, btnid_NEXT_PAGE}};
-const static wxAcceleratorTable accel_table(std::size(accel_entries),
-                                            accel_entries);
+// // 设置加速器表
+// const static wxAcceleratorEntry accel_entries[] = {
+//     {wxACCEL_CTRL, 'S', wxID_SAVE},
+//     {wxACCEL_CTRL, 'O', wxID_OPEN},
+//     {wxACCEL_CTRL, 'W', wxID_CLOSE},
+//     {wxACCEL_NORMAL, WXK_UP, wxID_UP},
+//     {wxACCEL_NORMAL, WXK_DOWN, wxID_DOWN}};
+// const static wxAcceleratorTable accel_table(std::size(accel_entries),
+//                                             accel_entries);
 
 MainWindow::MainWindow(wxWindow* parent, wxWindowID id, const wxString& title,
                        const wxPoint& pos, const wxSize& size, long style)
@@ -28,17 +27,20 @@ MainWindow::MainWindow(wxWindow* parent, wxWindowID id, const wxString& title,
     EnableTools(false);
     EnableConfigs(false);
 
-    SetAcceleratorTable(accel_table);
+    m_menubar = new MenuBar();
+    SetMenuBar(m_menubar);
+
+    // SetAcceleratorTable(accel_table);
 }
 
 MainWindow::~MainWindow() {}
 
 void MainWindow::EnableTools(bool state) {
-    toolbar->EnableTool(btnid_PREV_PAGE, state);
-    toolbar->EnableTool(btnid_NEXT_PAGE, state);
-    toolbar->EnableTool(btnid_SAVE, state);
-    // toolbar->EnableTool(btnid_LOAD, state);
-    toolbar->EnableTool(btnid_ZOOM_PAGE, state);
+    toolbar->EnableTool(wxID_UP, state);
+    toolbar->EnableTool(wxID_DOWN, state);
+    toolbar->EnableTool(wxID_SAVE, state);
+    // toolbar->EnableTool(wxID_OPEN, state);
+    toolbar->EnableTool(wxID_ZOOM_FIT, state);
     toolbar->EnableTool(btnid_CROP_CURR_PAGE, state);
     toolbar->EnableTool(btnid_CROP_ALL_PAGE, state);
     toolbar->Refresh();
@@ -104,8 +106,8 @@ void MainWindow::CurrentPage(std::size_t page) {
     if (prj) {
         __current_page = std::clamp(page, static_cast<std::size_t>(0),
                                     prj->GetPages().size() - 1);
-        toolbar->EnableTool(btnid_PREV_PAGE, __current_page != 0);
-        toolbar->EnableTool(btnid_NEXT_PAGE,
+        toolbar->EnableTool(wxID_UP, __current_page != 0);
+        toolbar->EnableTool(wxID_DOWN,
                             __current_page != prj->GetPages().size() - 1);
         pn_page_list->SetSelection(__current_page);
     }
@@ -143,14 +145,9 @@ void MainWindow::OnLoad(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnZoomPage(wxCommandEvent& event) {
-    if (canvas->IsLoaded()) {
-        ImageScaleModel& scaleModel = canvas->scaleModel;
-        scaleModel.ScaleTo(scaleModel.GetScaleSuitesPage());
-        scaleModel.MoveToCenter();
-        canvas->Refresh();
-    }
-}
+void MainWindow::OnUndo(wxCommandEvent& event) {}
+
+void MainWindow::OnRedo(wxCommandEvent& event) {}
 
 void MainWindow::OnCropCurrPage(wxCommandEvent& event) {
     if (canvas->IsLoaded()) {
@@ -176,6 +173,8 @@ void MainWindow::OnCropAllPage(wxCommandEvent& event) {
     }
 }
 
+void MainWindow::OnAbout(wxCommandEvent& event) {}
+
 void MainWindow::OnClickListBox(wxCommandEvent& event) {
     if (CurrentPage() != event.GetSelection()) {
         CurrentPage(event.GetSelection());
@@ -185,14 +184,19 @@ void MainWindow::OnClickListBox(wxCommandEvent& event) {
 
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
-    EVT_MENU(btnid_PREV_PAGE, MainWindow::OnPrevPage)
-    EVT_MENU(btnid_NEXT_PAGE, MainWindow::OnNextPage)
-    EVT_MENU(btnid_SAVE, MainWindow::OnSave)
-    EVT_MENU(btnid_LOAD, MainWindow::OnLoad)
-    EVT_MENU(btnid_ZOOM_PAGE, MainWindow::OnZoomPage)
+    EVT_MENU(wxID_UP, MainWindow::OnPrevPage)
+    EVT_MENU(wxID_DOWN, MainWindow::OnNextPage)
+    EVT_MENU(wxID_SAVE, MainWindow::OnSave)
+    EVT_MENU(wxID_OPEN, MainWindow::OnLoad)
+    EVT_MENU(wxID_UNDO, MainWindow::OnUndo)
+    EVT_MENU(wxID_ZOOM_IN, MainWindow::OnZoomIn)
+    EVT_MENU(wxID_ZOOM_OUT, MainWindow::OnZoomOut)
+    EVT_MENU(wxID_ZOOM_FIT, MainWindow::OnZoomFit)
+    EVT_MENU(wxID_ZOOM_100, MainWindow::OnZoom100)
     EVT_MENU(btnid_CROP_CURR_PAGE, MainWindow::OnCropCurrPage)
     EVT_MENU(btnid_CROP_ALL_PAGE, MainWindow::OnCropAllPage)
-    EVT_MENU(btnid_CLOSE, MainWindow::OnClose)
+    EVT_MENU(wxID_CLOSE, MainWindow::OnClose)
+    EVT_MENU(wxID_ABOUT, MainWindow::OnAbout)
     EVT_CLOSE(MainWindow::OnClose)
     EVT_LISTBOX(pnid_PAGE_LIST, MainWindow::OnClickListBox)
     EVT_SLIDER(sldid_cfg_PIX_FILTER, MainWindow::OnChnageCfgFilerPixSize)

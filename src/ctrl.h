@@ -34,4 +34,14 @@ class SliderWithSpin : public wxPanel {
 
     wxDECLARE_EVENT_TABLE();
 };
+
+class MenuBar : public wxMenuBar {
+   public:
+    wxMenu* menu_file;
+    wxMenu* menu_edit;
+    wxMenu* menu_view;
+    wxMenu* menu_help;
+
+    MenuBar();
+};
 }  // namespace Croplines

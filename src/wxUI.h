@@ -6,21 +6,21 @@
 #include <wx/bitmap.h>
 #include <wx/colour.h>
 #include <wx/font.h>
+#include <wx/frame.h>
 #include <wx/gdicmn.h>
 #include <wx/icon.h>
 #include <wx/image.h>
 #include <wx/listbox.h>
-#include <wx/settings.h>
-#include <wx/statusbr.h>
-#include <wx/string.h>
-#include <wx/xrc/xmlres.h>
-#include <wx/frame.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
+#include <wx/settings.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/spinbutt.h>
 #include <wx/stattext.h>
+#include <wx/statusbr.h>
+#include <wx/string.h>
+#include <wx/xrc/xmlres.h>
 
 #include "canvas.h"
 #include "ctrl.h"
@@ -28,14 +28,8 @@
 namespace Croplines {
 
 enum {
-    btnid_PREV_PAGE = 1000,
-    btnid_NEXT_PAGE,
-    btnid_SAVE,
-    btnid_LOAD,
-    btnid_ZOOM_PAGE,
-    btnid_CROP_CURR_PAGE,
+    btnid_CROP_CURR_PAGE = 1000,
     btnid_CROP_ALL_PAGE,
-    btnid_CLOSE,
 
     pnid_PAGE_LIST,
 

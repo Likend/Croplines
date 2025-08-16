@@ -87,6 +87,11 @@ class Canvas : public wxGLCanvas {
     bool IsLoaded() const { return page; }
     ImageScaleModel& GetScaleModel() { return scaleModel; }
 
+    void ZoomIn();
+    void ZoomOut();
+    void ZoomFit();
+    void Zoom(double scale);
+
    private:
     bool is_deleting = false;
     bool is_mouse_capture = false;
@@ -100,8 +105,8 @@ class Canvas : public wxGLCanvas {
 
     void OnPaint(wxPaintEvent& event);
     void OnSize(wxSizeEvent& event);
-    void OnMouseWheel(wxMouseEvent& event);
 
+    void OnMouseWheel(wxMouseEvent& event);
     void OnMouseLeftDown(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseEvent& event);
     void OnMouseLeftUp(wxMouseCaptureLostEvent& event);

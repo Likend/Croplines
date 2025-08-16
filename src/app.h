@@ -34,6 +34,7 @@ class MainWindow final : public MainUI {
 
    private:
     std::size_t __current_page = 0;
+    wxMenuBar* m_menubar;
 
    private:
     void ShowPage();
@@ -42,13 +43,19 @@ class MainWindow final : public MainUI {
     void OnNextPage(wxCommandEvent& event) { NextPage(); }
     void OnSave(wxCommandEvent& event) { Save(); }
     void OnLoad(wxCommandEvent& event);
-    void OnZoomPage(wxCommandEvent& event);
+    void OnUndo(wxCommandEvent& event);
+    void OnRedo(wxCommandEvent& event);
+    void OnZoomIn(wxCommandEvent& event) { canvas->ZoomIn(); }
+    void OnZoomOut(wxCommandEvent& event) { canvas->ZoomOut(); }
+    void OnZoomFit(wxCommandEvent& event) { canvas->ZoomFit(); }
+    void OnZoom100(wxCommandEvent& event) { canvas->Zoom(1.0); }
     void OnCropCurrPage(wxCommandEvent& event);
     void OnCropAllPage(wxCommandEvent& event);
     void OnClose(wxCloseEvent& event) {
         if (!Close()) event.Veto();
     }
     void OnClose(wxCommandEvent& event) { Close(); }
+    void OnAbout(wxCommandEvent& event);
     void OnClickListBox(wxCommandEvent& event);
     void OnChnageCfgFilerPixSize(wxCommandEvent& event) {
         prj->config.filter_noise_size = event.GetInt();
