@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <opencv2/opencv.hpp>
+#include <wx/aboutdlg.h>
 #include <wx/event.h>
 #include <wx/wx.h>
 
@@ -173,7 +174,21 @@ void MainWindow::OnCropAllPage(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnAbout(wxCommandEvent& event) {}
+void MainWindow::OnAbout(wxCommandEvent& event) {
+    static const char LICENSE[] = {
+#embed "../LICENSE"
+    };
+
+    wxAboutDialogInfo aboutInfo;
+    aboutInfo.SetName(wxT("Croplines"));
+    aboutInfo.SetIcon(wxICON(MAIN_ICON));
+    // aboutInfo.AddArtist(wxT("Likend"));
+    aboutInfo.AddDeveloper(wxT("Likend"));
+    aboutInfo.SetWebSite(wxT("https://github.com/Likend/Croplines"));
+    aboutInfo.SetCopyright(wxT("(C) 2024-2025"));
+    aboutInfo.SetLicence(LICENSE);
+    wxAboutBox(aboutInfo);
+}
 
 void MainWindow::OnClickListBox(wxCommandEvent& event) {
     if (CurrentPage() != event.GetSelection()) {
@@ -211,9 +226,10 @@ IMPLEMENT_APP(MyApp)
 bool MyApp::OnInit() {
     SetAppearance(Appearance::System);
     // wxImage::AddHandler(new wxBMPHandler);
+    wxImage::AddHandler(new wxPNGHandler);
     wxImage::AddHandler(new wxTIFFHandler);
     wxImage::AddHandler(new wxJPEGHandler);
-    wxImage::AddHandler(new wxPNGHandler);
+    wxImage::AddHandler(new wxWEBPHandler);
 
     frame = new MainWindow(nullptr);  // 创建主窗口
     frame->Show(true);                // 显示主窗口
