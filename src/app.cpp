@@ -1,6 +1,7 @@
 #include "app.h"
 
 #include <algorithm>
+#include <thread>
 
 #include <opencv2/opencv.hpp>
 #include <wx/aboutdlg.h>
@@ -98,6 +99,7 @@ void MainWindow::Load(std::filesystem::path path) {
         EnableConfigs(true);
         EnableMenu(true);
         canvas->SetPrj(*prj);
+        SetTitle(wxString(path.filename()));
     }
 }
 
@@ -218,13 +220,16 @@ void MainWindow::OnCropCurrPage(wxCommandEvent& event) {
 
 void MainWindow::OnCropAllPage(wxCommandEvent& event) {
     if (canvas->IsLoaded()) {
-        std::size_t count = 1;
-        for (Prj::Page& page : prj->GetPages()) {
-            SetStatusText(std::format("Page {} is croping...", count));
-            prj->SaveCrops(page);
-            count++;
-        }
-        SetStatusText(wxT("Croping finised!"));
+        std::thread t([this]() {
+            std::size_t count = 1;
+            for (Prj::Page& page : prj->GetPages()) {
+                SetStatusText(std::format("Page {} is croping...", count));
+                prj->SaveCrops(page);
+                count++;
+            }
+            SetStatusText(wxT("Croping finised!"));
+        });
+        t.detach();
     }
 }
 

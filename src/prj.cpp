@@ -29,20 +29,37 @@ bool Prj::SaveCrops(Page& page) {
     fs::create_directories(config.output_dir);
     for (wxRect area : GetSelectArea(page)) {
         wxImage sub_image = image.GetSubImage(area);
-        wxSize border_size = wxSize{static_cast<int>(config.border),
-                                    static_cast<int>(config.border)};
-        wxBitmap bitmap(area.GetSize() + 2 * border_size);
-        wxMemoryDC memDC;
-        memDC.SelectObject(bitmap);
-        memDC.SetBrush(*wxWHITE_BRUSH);
-        memDC.DrawRectangle(wxPoint{}, bitmap.GetSize());
-        memDC.DrawBitmap(wxBitmap(sub_image), wxPoint{} + border_size);
+        // TODO
+        // wxSize border_size = wxSize{static_cast<int>(config.border),
+        //                             static_cast<int>(config.border)};
+        // wxBitmap bitmap(area.GetSize() + 2 * border_size);
+        // wxMemoryDC memDC;
+        // memDC.SelectObject(bitmap);
+        // memDC.SetBrush(*wxWHITE_BRUSH);
+        // memDC.DrawRectangle(wxPoint{}, bitmap.GetSize());
+        // memDC.DrawBitmap(wxBitmap(sub_image), wxPoint{} + border_size);
+
+        // optimize compress for tiff
+        int sample_per_pixel =
+            image.GetOptionInt(wxIMAGE_OPTION_TIFF_SAMPLESPERPIXEL);
+        int bits_per_sample =
+            image.GetOptionInt(wxIMAGE_OPTION_TIFF_BITSPERSAMPLE);
+        sub_image.SetOption(wxIMAGE_OPTION_TIFF_SAMPLESPERPIXEL,
+                            sample_per_pixel);
+        sub_image.SetOption(wxIMAGE_OPTION_TIFF_BITSPERSAMPLE, bits_per_sample);
+        if (sample_per_pixel == 1 && bits_per_sample == 1)
+            sub_image.SetOption(wxIMAGE_OPTION_TIFF_COMPRESSION, 4);
+        else
+            sub_image.SetOption(
+                wxIMAGE_OPTION_TIFF_COMPRESSION,
+                image.GetOptionInt(wxIMAGE_OPTION_TIFF_COMPRESSION));
 
         fs::path file_path =
             config.output_dir /
-            std::format("{}-{}.{}", page.image_path.stem().string(), count,
+            std::format("{}-{}{}", page.image_path.stem().string(), count,
                         page.image_path.extension().string());
-        bitmap.SaveFile(wxString(file_path), image.GetType());
+        // bitmap.SaveFile(wxString(file_path), image.GetType());
+        sub_image.SaveFile(wxString(file_path), image.GetType());
         count++;
     }
     return true;

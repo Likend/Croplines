@@ -1,7 +1,5 @@
 #include "ctrl.h"
 
-#include <format>
-
 #include "wxUI.h"
 
 using namespace Croplines;
