@@ -104,6 +104,7 @@ MenuBar::MenuBar() : wxMenuBar() {
                           "output directory"));
     menu_file->AppendSeparator();
     menu_file->Append(wxID_CLOSE);
+    menu_file->Append(wxID_EXIT);
 
     Append(menu_file, wxT("&File"));
 

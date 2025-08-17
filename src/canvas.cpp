@@ -159,6 +159,13 @@ void Canvas::SetPage(Prj::Page& page) {
     Refresh();
 }
 
+void Canvas::Clear() {
+    if (texture) glDeleteTextures(1, &texture);
+    prj = nullptr;
+    page = nullptr;
+    Refresh();
+}
+
 void Canvas::ZoomIn() {
     if (!IsLoaded()) return;
     scaleModel.Scale(Config::zoom_in_rate);

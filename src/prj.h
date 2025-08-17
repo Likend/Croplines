@@ -154,7 +154,7 @@ class Prj {
 
 }  // namespace Croplines
 
-// Add support for cereal serialization
+// Add support for cereal serializing std::filesystem::path
 namespace std {
 namespace filesystem {
 template <class Archive>

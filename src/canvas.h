@@ -82,6 +82,7 @@ class Canvas : public wxGLCanvas {
     ~Canvas();
     void SetPrj(Prj& prj) { this->prj = &prj; }
     void SetPage(Prj::Page& pageData);
+    void Clear();
     bool IsLoaded() const { return page; }
     ImageScaleModel& GetScaleModel() { return scaleModel; }
 

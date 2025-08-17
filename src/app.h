@@ -17,7 +17,7 @@ class MainWindow final : public MainUI {
                const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxSize(972, 651),
                long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
-    ~MainWindow();
+    ~MainWindow() {};
 
     void EnableTools(bool state);
     void EnableConfigs(bool enable);
@@ -27,7 +27,8 @@ class MainWindow final : public MainUI {
     void Save() {
         if (prj) prj->Save();
     }
-    bool Close();  // true if close succesfully; false if cancelled
+    bool ClosePrj();
+    bool Exit();  // true if close succesfully; false if cancelled
 
     std::size_t CurrentPage() { return __current_page; }
     void CurrentPage(std::size_t);
@@ -53,10 +54,11 @@ class MainWindow final : public MainUI {
     void OnZoom100(wxCommandEvent& event) { canvas->Zoom(1.0); }
     void OnCropCurrPage(wxCommandEvent& event);
     void OnCropAllPage(wxCommandEvent& event);
-    void OnClose(wxCloseEvent& event) {
-        if (!Close()) event.Veto();
+    void OnClose(wxCommandEvent& event) { ClosePrj(); }
+    void OnExit(wxCloseEvent& event) {
+        if (!Exit()) event.Veto();
     }
-    void OnClose(wxCommandEvent& event) { Close(); }
+    void OnExit(wxCommandEvent& event) { Close(); }
     void OnAbout(wxCommandEvent& event);
     void OnClickListBox(wxCommandEvent& event);
     void OnChnageCfgFilerPixSize(wxCommandEvent& event) {

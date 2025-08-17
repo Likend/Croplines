@@ -15,7 +15,7 @@ using namespace Croplines;
 // const static wxAcceleratorEntry accel_entries[] = {
 //     {wxACCEL_CTRL, 'S', wxID_SAVE},
 //     {wxACCEL_CTRL, 'O', wxID_OPEN},
-//     {wxACCEL_CTRL, 'W', wxID_CLOSE},
+//     {wxACCEL_CTRL, 'W', wxID_EXIT},
 //     {wxACCEL_NORMAL, WXK_UP, wxID_UP},
 //     {wxACCEL_NORMAL, WXK_DOWN, wxID_DOWN}};
 // const static wxAcceleratorTable accel_table(std::size(accel_entries),
@@ -35,8 +35,6 @@ MainWindow::MainWindow(wxWindow* parent, wxWindowID id, const wxString& title,
 
     // SetAcceleratorTable(accel_table);
 }
-
-MainWindow::~MainWindow() {}
 
 void MainWindow::EnableTools(bool state) {
     toolbar->EnableTool(wxID_UP, state);
@@ -58,6 +56,7 @@ void MainWindow::EnableConfigs(bool enable) {
 
 void MainWindow::EnableMenu(bool enable) {
     menubar->Enable(wxID_SAVE, enable);
+    menubar->Enable(wxID_CLOSE, enable);
     menubar->Enable(wxID_UP, enable);
     menubar->Enable(wxID_DOWN, enable);
     menubar->Enable(wxID_ZOOM_FIT, enable);
@@ -118,12 +117,28 @@ static bool ShowCloseDialog(wxWindow* parent, Prj& prj) {
     }
 }
 
-bool MainWindow::Close() {
-    if (prj && prj->IsChange()) {
-        if (!ShowCloseDialog(this, *prj)) return false;
+bool MainWindow::ClosePrj() {
+    if (prj) {
+        if (prj->IsChange()) {
+            if (!ShowCloseDialog(this, *prj)) return false;
+        }
+        EnableTools(false);
+        EnableMenu(false);
+        EnableConfigs(false);
+        prj->GetPages()[CurrentPage()].get().Close();
+        prj.reset();
+        canvas->Clear();
+        pn_page_list->Clear();
     }
-    Destroy();
     return true;
+}
+
+bool MainWindow::Exit() {
+    if (ClosePrj()) {
+        Destroy();
+        return true;
+    } else
+        return false;
 }
 
 void MainWindow::CurrentPage(std::size_t page) {
@@ -139,6 +154,7 @@ void MainWindow::CurrentPage(std::size_t page) {
 
 void MainWindow::PrevPage() {
     if (prj && CurrentPage() != 0) {
+        prj->GetPages()[CurrentPage()].get().Close();
         CurrentPage(CurrentPage() - 1);
         ShowPage();
     }
@@ -146,6 +162,7 @@ void MainWindow::PrevPage() {
 
 void MainWindow::NextPage() {
     if (prj && CurrentPage() < prj->GetPages().size()) {
+        prj->GetPages()[CurrentPage()].get().Close();
         CurrentPage(CurrentPage() + 1);
         ShowPage();
     }
@@ -249,8 +266,9 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(btnid_CROP_CURR_PAGE, MainWindow::OnCropCurrPage)
     EVT_MENU(btnid_CROP_ALL_PAGE, MainWindow::OnCropAllPage)
     EVT_MENU(wxID_CLOSE, MainWindow::OnClose)
+    EVT_MENU(wxID_EXIT, MainWindow::OnExit)
     EVT_MENU(wxID_ABOUT, MainWindow::OnAbout)
-    EVT_CLOSE(MainWindow::OnClose)
+    EVT_CLOSE(MainWindow::OnExit)
     EVT_LISTBOX(pnid_PAGE_LIST, MainWindow::OnClickListBox)
     EVT_SLIDER(sldid_cfg_PIX_FILTER, MainWindow::OnChnageCfgFilerPixSize)
     EVT_SLIDER(sldid_cfg_BORDER, MainWindow::OnChangeCfgBorder)
