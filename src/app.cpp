@@ -25,11 +25,13 @@ MainWindow::MainWindow(wxWindow* parent, wxWindowID id, const wxString& title,
                        const wxPoint& pos, const wxSize& size, long style)
     : MainUI(parent, id, title, pos, size, style) {
     SetIcon(wxICON(MAIN_ICON));
-    EnableTools(false);
-    EnableConfigs(false);
 
-    m_menubar = new MenuBar();
-    SetMenuBar(m_menubar);
+    menubar = new MenuBar();
+    SetMenuBar(menubar);
+
+    EnableTools(false);
+    EnableMenu(false);
+    EnableConfigs(false);
 
     // SetAcceleratorTable(accel_table);
 }
@@ -54,10 +56,30 @@ void MainWindow::EnableConfigs(bool enable) {
     sld_cfg_pix_filter->Enable(enable);
 }
 
+void MainWindow::EnableMenu(bool enable) {
+    menubar->Enable(wxID_SAVE, enable);
+    menubar->Enable(wxID_UP, enable);
+    menubar->Enable(wxID_DOWN, enable);
+    menubar->Enable(wxID_ZOOM_FIT, enable);
+    menubar->Enable(wxID_ZOOM_OUT, enable);
+    menubar->Enable(wxID_ZOOM_IN, enable);
+    menubar->Enable(wxID_ZOOM_100, enable);
+    menubar->Enable(btnid_CROP_CURR_PAGE, enable);
+    menubar->Enable(btnid_CROP_ALL_PAGE, enable);
+    if (!enable) {
+        menubar->Enable(wxID_UNDO, false);
+        menubar->Enable(wxID_REDO, false);
+    } else {
+        menubar->Enable(wxID_UNDO, prj->CanUndo());
+        menubar->Enable(wxID_REDO, prj->CanRedo());
+    }
+}
+
 void MainWindow::Load(std::filesystem::path path) {
     auto prj_res = Prj::Load(path);
     if (prj_res) {
         prj = std::move(prj_res);
+        prj->menubar = menubar;
 
         // panel page list
         std::vector<wxString> file_names(prj->GetPages().size());
@@ -75,6 +97,7 @@ void MainWindow::Load(std::filesystem::path path) {
 
         EnableTools(true);
         EnableConfigs(true);
+        EnableMenu(true);
         canvas->SetPrj(*prj);
     }
 }
@@ -146,9 +169,23 @@ void MainWindow::OnLoad(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnUndo(wxCommandEvent& event) {}
+void MainWindow::OnUndo(wxCommandEvent& event) {
+    if (prj) {
+        prj->Undo();
+        canvas->Refresh();
+        menubar->Enable(wxID_UNDO, prj->CanUndo());
+        menubar->Enable(wxID_REDO, true);
+    }
+}
 
-void MainWindow::OnRedo(wxCommandEvent& event) {}
+void MainWindow::OnRedo(wxCommandEvent& event) {
+    if (prj) {
+        prj->Redo();
+        canvas->Refresh();
+        menubar->Enable(wxID_UNDO, true);
+        menubar->Enable(wxID_REDO, prj->CanRedo());
+    }
+}
 
 void MainWindow::OnCropCurrPage(wxCommandEvent& event) {
     if (canvas->IsLoaded()) {
@@ -204,6 +241,7 @@ wxBEGIN_EVENT_TABLE(MainWindow, wxFrame)
     EVT_MENU(wxID_SAVE, MainWindow::OnSave)
     EVT_MENU(wxID_OPEN, MainWindow::OnLoad)
     EVT_MENU(wxID_UNDO, MainWindow::OnUndo)
+    EVT_MENU(wxID_REDO, MainWindow::OnRedo)
     EVT_MENU(wxID_ZOOM_IN, MainWindow::OnZoomIn)
     EVT_MENU(wxID_ZOOM_OUT, MainWindow::OnZoomOut)
     EVT_MENU(wxID_ZOOM_FIT, MainWindow::OnZoomFit)

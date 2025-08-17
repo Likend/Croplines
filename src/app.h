@@ -1,6 +1,7 @@
 #pragma once
 
 #include <filesystem>
+#include <optional>
 
 #include <wx/event.h>
 #include <wx/wx.h>
@@ -20,6 +21,7 @@ class MainWindow final : public MainUI {
 
     void EnableTools(bool state);
     void EnableConfigs(bool enable);
+    void EnableMenu(bool enable);
 
     void Load(std::filesystem::path path);
     void Save() {
@@ -34,7 +36,7 @@ class MainWindow final : public MainUI {
 
    private:
     std::size_t __current_page = 0;
-    wxMenuBar* m_menubar;
+    wxMenuBar* menubar;
 
    private:
     void ShowPage();

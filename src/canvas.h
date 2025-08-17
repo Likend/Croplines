@@ -36,9 +36,7 @@ class ImageScaleModel {
     void ScaleTo(double scale, wxPoint center);
     void ScaleTo(double scale) { ScaleTo(scale, wxPoint{} + windowSize / 2); }
     void Move(wxPoint dr);
-
     void MoveToCenter();
-
     void WindowResize(wxSize windowSizeNew);
     void ImageResize(wxSize imageSizeNew);
 

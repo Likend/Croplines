@@ -149,6 +149,64 @@ std::optional<std::set<std::uint32_t>::iterator> Page::SearchNearestLine(
     return std::nullopt;
 }
 
+bool Prj::InsertLineRecord::Do(Prj& prj) {
+    auto [__, actual_modified] = page.get().crop_lines.insert(line);
+    page.get().modified = true;
+    return actual_modified;
+}
+
+void Prj::InsertLineRecord::Undo(Prj& prj) {
+    page.get().crop_lines.erase(line);
+    page.get().modified = true;
+}
+
+bool Prj::EraseLineRecord::Do(Prj& prj) {
+    page.get().crop_lines.erase(it);
+    page.get().modified = true;
+    return true;
+}
+
+void Prj::EraseLineRecord::Undo(Prj& prj) {
+    page.get().crop_lines.insert(line);
+    page.get().modified = true;
+}
+
+struct UndoVisitor {
+    std::reference_wrapper<Prj> prj;
+
+    template <ActionRecord A>
+    void operator()(A& action) {
+        action.Undo(prj);
+    }
+};
+
+struct RedoVisitor {
+    std::reference_wrapper<Prj> prj;
+
+    template <ActionRecord A>
+    void operator()(A& action) {
+        action.Do(prj);
+    }
+};
+
+void Prj::Undo() {
+    if (!undo_stack.empty()) {
+        auto action = undo_stack.top();
+        undo_stack.pop();
+        std::visit(UndoVisitor(*this), action);
+        redo_stack.push(action);
+    }
+}
+
+void Prj::Redo() {
+    if (!redo_stack.empty()) {
+        auto action = redo_stack.top();
+        redo_stack.pop();
+        std::visit(RedoVisitor(*this), action);
+        undo_stack.push(action);
+    }
+}
+
 static std::strong_ordering NaturalCompare(std::string_view a,
                                            std::string_view b) {
     for (const char *i1 = a.begin(), *i2 = b.begin();

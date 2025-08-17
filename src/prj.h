@@ -4,7 +4,9 @@
 #include <filesystem>
 #include <optional>
 #include <set>
+#include <stack>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include <cereal/cereal.hpp>
@@ -15,36 +17,36 @@
 #include <wx/wx.h>
 
 namespace Croplines {
-
-using namespace std::string_literals;
-constexpr const char* VALID_EXTENSION[] = {".png", ".jpg",  ".jpeg",
-                                           ".bmp", ".tiff", ".tif"};
+constexpr const char* VALID_EXTENSION[] = {".png",  ".jpg", ".jpeg", ".bmp",
+                                           ".tiff", ".tif", ".webp"};
 constexpr const char* PROJECT_FILE_NAME = "croplines.json";
 constexpr const char* DEFAULT_OUTPUT_DIR = "out";
+
+class Prj;
+
+template <typename T>
+concept ActionRecord = requires(T record, Prj& prj) {
+    { record.Do(prj) } -> std::same_as<bool>;
+    { record.Undo(prj) } -> std::same_as<void>;
+};
 
 class Prj {
    public:
     class Page {
         using u32 = std::uint32_t;
         friend class Prj;
-
-       public:
-       private:
         std::set<u32> crop_lines;  // 从小到大排序
         std::vector<wxRect> select_area;
         bool modified = true;
-
         wxImage image;  // can be empty
-        bool IsLoaded() const { return image.IsOk(); };
-
        public:
         std::filesystem::path image_path;
 
         Page(std::filesystem::path image_path)
             : image_path(std::move(image_path)) {}
-
         Page() = default;
 
+        bool IsLoaded() const { return image.IsOk(); };
         void Close() { image.Destroy(); }
 
         const std::set<u32> GetCropLines() const { return crop_lines; }
@@ -57,15 +59,6 @@ class Prj {
             archive(CEREAL_NVP(crop_lines));
         }
     };
-
-   private:
-    std::vector<Page> pages;
-    std::vector<std::reference_wrapper<Page>> pages_sorted;
-
-   public:
-    std::vector<std::reference_wrapper<Page>> GetPages() const {
-        return pages_sorted;
-    }
 
     struct Config {
         std::filesystem::path output_dir;
@@ -80,43 +73,88 @@ class Prj {
         }
     } config;
 
+    class InsertLineRecord {
+        std::uint32_t line;
+        std::reference_wrapper<Page> page;
+
+       public:
+        InsertLineRecord(std::uint32_t line, Page& page)
+            : line(line), page(page) {}
+        bool Do(Prj& prj);
+        void Undo(Prj& prj);
+    };
+
+    class EraseLineRecord {
+        using SetIteratorType = decltype(Page::crop_lines)::iterator;
+        SetIteratorType it;
+        std::reference_wrapper<Page> page;
+        std::uint32_t line;
+
+       public:
+        EraseLineRecord(SetIteratorType it, Page& page)
+            : it(it), page(page), line(*it) {}
+        bool Do(Prj& prj);
+        void Undo(Prj& prj);
+    };
+
+    using Action = std::variant<InsertLineRecord, EraseLineRecord>;
+
    private:
+    std::vector<Page> pages;
+    std::vector<std::reference_wrapper<Page>> pages_sorted;
     std::filesystem::path cwd;  // current working directory
     bool is_change;
+
+    std::stack<Action> undo_stack;
+    std::stack<Action> redo_stack;
+
+   public:
+    wxMenuBar* menubar = nullptr;
 
    public:
     static std::optional<Prj> Load(const std::filesystem::path& path);
     void Save();
+    std::vector<std::reference_wrapper<Page>> GetPages() const {
+        return pages_sorted;
+    }
     inline bool IsChange() { return is_change; }
     inline void Change() { is_change = true; }
 
     wxImage LoadPage(Page& page);
     bool SaveCrops(Page& page);
     const std::vector<wxRect>& GetSelectArea(Page& page);
-    void InsertLine(std::uint32_t line, Page& page) {
-        page.crop_lines.insert(line);
-        page.modified = true;
-        is_change = true;
-    }
-    void EraseLine(decltype(Page::crop_lines)::iterator it, Page& page) {
-        page.crop_lines.erase(it);
-        page.modified = true;
-        is_change = true;
-    }
 
-   private:
-    void Initialize();
+    template <ActionRecord A>
+    void Execute(A action) {
+        bool success = action.Do(*this);
+        if (success) {
+            is_change = true;
+            undo_stack.push(action);
+            redo_stack = std::stack<Action>();
+            if (menubar) {
+                menubar->Enable(wxID_UNDO, true);
+                menubar->Enable(wxID_REDO, false);
+            }
+        }
+    }
+    bool CanUndo() const { return !undo_stack.empty(); }
+    bool CanRedo() const { return !redo_stack.empty(); }
+    void Undo();
+    void Redo();
 
-   public:
     template <class Archive>
     void serialize(Archive& archive) {
         archive(CEREAL_NVP(config));
         archive(CEREAL_NVP(pages));
     }
+
+   private:
+    void Initialize();
 };
 
 }  // namespace Croplines
 
+// Add support for cereal serialization
 namespace std {
 namespace filesystem {
 template <class Archive>
