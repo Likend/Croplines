@@ -1,6 +1,5 @@
 #pragma once
 
-#include <cstdint>
 #include <filesystem>
 #include <optional>
 #include <set>
@@ -33,25 +32,22 @@ concept ActionRecord = requires(T record, Prj& prj) {
 class Prj {
    public:
     class Page {
-        using u32 = std::uint32_t;
         friend class Prj;
-        std::set<u32> crop_lines;  // 从小到大排序
+        std::set<int> crop_lines;  // 从小到大排序
         std::vector<wxRect> select_area;
         bool modified = true;
         wxImage image;  // can be empty
        public:
         std::filesystem::path image_path;
 
-        Page(std::filesystem::path image_path)
-            : image_path(std::move(image_path)) {}
+        Page(std::filesystem::path image_path) : image_path(std::move(image_path)) {}
         Page() = default;
 
         bool IsLoaded() const { return image.IsOk(); };
         void Close() { image.Destroy(); }
 
-        const std::set<u32> GetCropLines() const { return crop_lines; }
-        std::optional<std::set<u32>::iterator> SearchNearestLine(
-            u32 key, u32 limit) const;
+        const std::set<int> GetCropLines() const { return crop_lines; }
+        std::optional<std::set<int>::iterator> SearchNearestLine(int key, int limit) const;
 
         template <class Archive>
         void serialize(Archive& archive) {
@@ -62,8 +58,8 @@ class Prj {
 
     struct Config {
         std::filesystem::path output_dir;
-        std::uint32_t border;
-        std::uint32_t filter_noise_size;
+        int border;
+        int filter_noise_size;
 
         template <class Archive>
         void serialize(Archive& archive) {
@@ -74,12 +70,11 @@ class Prj {
     } config;
 
     class InsertLineRecord {
-        std::uint32_t line;
+        int line;
         std::reference_wrapper<Page> page;
 
        public:
-        InsertLineRecord(std::uint32_t line, Page& page)
-            : line(line), page(page) {}
+        InsertLineRecord(int line, Page& page) : line(line), page(page) {}
         bool Do(Prj& prj);
         void Undo(Prj& prj);
     };
@@ -88,11 +83,10 @@ class Prj {
         using SetIteratorType = decltype(Page::crop_lines)::iterator;
         SetIteratorType it;
         std::reference_wrapper<Page> page;
-        std::uint32_t line;
+        int line;
 
        public:
-        EraseLineRecord(SetIteratorType it, Page& page)
-            : it(it), page(page), line(*it) {}
+        EraseLineRecord(SetIteratorType it, Page& page) : it(it), page(page), line(*it) {}
         bool Do(Prj& prj);
         void Undo(Prj& prj);
     };
@@ -114,9 +108,7 @@ class Prj {
    public:
     static std::optional<Prj> Load(const std::filesystem::path& path);
     void Save();
-    std::vector<std::reference_wrapper<Page>> GetPages() const {
-        return pages_sorted;
-    }
+    std::vector<std::reference_wrapper<Page>> GetPages() const { return pages_sorted; }
     inline bool IsChange() { return is_change; }
     inline void Change() { is_change = true; }
 
@@ -158,14 +150,12 @@ class Prj {
 namespace std {
 namespace filesystem {
 template <class Archive>
-inline void load_minimal(const Archive&, std::filesystem::path& path,
-                         const std::string& name) {
+inline void load_minimal(const Archive&, std::filesystem::path& path, const std::string& name) {
     path = name;
 }
 
 template <class Archive>
-inline std::string save_minimal(const Archive&,
-                                const std::filesystem::path& path) {
+inline std::string save_minimal(const Archive&, const std::filesystem::path& path) {
     return path.string();
 }
 }  // namespace filesystem

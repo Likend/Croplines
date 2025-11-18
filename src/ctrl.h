@@ -10,12 +10,11 @@ class SliderWithSpin : public wxPanel {
     wxSpinCtrl* m_spin;
 
    public:
-    SliderWithSpin(wxWindow* parent, wxWindowID id, const wxString& label,
-                   int value, int minValue, int maxValue,
-                   const wxPoint& pos = wxDefaultPosition,
+    SliderWithSpin(wxWindow* parent, wxWindowID id, const wxString& label, int value, int minValue,
+                   int maxValue, const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = wxDefaultSize);
 
-    virtual bool Enable(bool enable = false) override;
+    bool Enable(bool enable = false) override;
 
    private:
     int value;

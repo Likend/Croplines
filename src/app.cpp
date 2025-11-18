@@ -22,8 +22,8 @@ using namespace Croplines;
 // const static wxAcceleratorTable accel_table(std::size(accel_entries),
 //                                             accel_entries);
 
-MainWindow::MainWindow(wxWindow* parent, wxWindowID id, const wxString& title,
-                       const wxPoint& pos, const wxSize& size, long style)
+MainWindow::MainWindow(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
+                       const wxSize& size, long style)
     : MainUI(parent, id, title, pos, size, style) {
     SetIcon(wxICON(MAIN_ICON));
 
@@ -83,17 +83,16 @@ void MainWindow::Load(std::filesystem::path path) {
 
         // panel page list
         std::vector<wxString> file_names(prj->GetPages().size());
-        std::ranges::transform(prj->GetPages(), file_names.begin(),
-                               [](const Prj::Page& page) {
-                                   return wxString(page.image_path.filename());
-                               });
+        std::ranges::transform(prj->GetPages(), file_names.begin(), [](const Prj::Page& page) {
+            return wxString(page.image_path.filename());
+        });
         pn_page_list->Set(file_names);
         if (!prj->GetPages().empty()) {
             CurrentPage(0);
             ShowPage();
         }
-        sld_cfg_border->SetValue(prj->config.border);
-        sld_cfg_pix_filter->SetValue(prj->config.filter_noise_size);
+        sld_cfg_border->SetValue(static_cast<int>(prj->config.border));
+        sld_cfg_pix_filter->SetValue(static_cast<int>(prj->config.filter_noise_size));
 
         EnableTools(true);
         EnableConfigs(true);
@@ -145,12 +144,10 @@ bool MainWindow::Exit() {
 
 void MainWindow::CurrentPage(std::size_t page) {
     if (prj) {
-        __current_page = std::clamp(page, static_cast<std::size_t>(0),
-                                    prj->GetPages().size() - 1);
-        toolbar->EnableTool(wxID_UP, __current_page != 0);
-        toolbar->EnableTool(wxID_DOWN,
-                            __current_page != prj->GetPages().size() - 1);
-        pn_page_list->SetSelection(__current_page);
+        current_page = std::clamp(page, static_cast<std::size_t>(0), prj->GetPages().size() - 1);
+        toolbar->EnableTool(wxID_UP, current_page != 0);
+        toolbar->EnableTool(wxID_DOWN, current_page != prj->GetPages().size() - 1);
+        pn_page_list->SetSelection(static_cast<int>(current_page));
     }
 }
 
@@ -175,7 +172,7 @@ void MainWindow::ShowPage() {
     canvas->Refresh();
 }
 
-void MainWindow::OnLoad(wxCommandEvent& event) {
+void MainWindow::OnLoad([[maybe_unused]] wxCommandEvent& event) {
     if (prj && prj->IsChange()) {
         if (!ShowCloseDialog(this, *prj)) return;
     }
@@ -188,7 +185,7 @@ void MainWindow::OnLoad(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnUndo(wxCommandEvent& event) {
+void MainWindow::OnUndo([[maybe_unused]] wxCommandEvent& event) {
     if (prj) {
         prj->Undo();
         canvas->Refresh();
@@ -197,7 +194,7 @@ void MainWindow::OnUndo(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnRedo(wxCommandEvent& event) {
+void MainWindow::OnRedo([[maybe_unused]] wxCommandEvent& event) {
     if (prj) {
         prj->Redo();
         canvas->Refresh();
@@ -206,7 +203,7 @@ void MainWindow::OnRedo(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnCropCurrPage(wxCommandEvent& event) {
+void MainWindow::OnCropCurrPage([[maybe_unused]] wxCommandEvent& event) {
     if (canvas->IsLoaded()) {
         Prj::Page& page = *canvas->page;
         SetStatusText(std::format("Page {} is croping...", CurrentPage() + 1));
@@ -218,7 +215,7 @@ void MainWindow::OnCropCurrPage(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnCropAllPage(wxCommandEvent& event) {
+void MainWindow::OnCropAllPage([[maybe_unused]] wxCommandEvent& event) {
     if (canvas->IsLoaded()) {
         std::thread t([this]() {
             std::size_t count = 1;
@@ -233,7 +230,7 @@ void MainWindow::OnCropAllPage(wxCommandEvent& event) {
     }
 }
 
-void MainWindow::OnAbout(wxCommandEvent& event) {
+void MainWindow::OnAbout([[maybe_unused]] wxCommandEvent& event) {
     static const char LICENSE[] = {
 #embed "../LICENSE"
     };

@@ -13,8 +13,7 @@ namespace Croplines {
 class MainWindow final : public MainUI {
    public:
     MainWindow(wxWindow* parent, wxWindowID id = wxID_ANY,
-               const wxString& title = wxT("Crop Lines"),
-               const wxPoint& pos = wxDefaultPosition,
+               const wxString& title = wxT("Crop Lines"), const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxSize(972, 651),
                long style = wxDEFAULT_FRAME_STYLE | wxTAB_TRAVERSAL);
     ~MainWindow() {};
@@ -30,35 +29,35 @@ class MainWindow final : public MainUI {
     bool ClosePrj();
     bool Exit();  // true if close succesfully; false if cancelled
 
-    std::size_t CurrentPage() { return __current_page; }
+    std::size_t CurrentPage() { return current_page; }
     void CurrentPage(std::size_t);
     void PrevPage();
     void NextPage();
 
    private:
-    std::size_t __current_page = 0;
+    std::size_t current_page = 0;
     wxMenuBar* menubar;
 
    private:
     void ShowPage();
 
-    void OnPrevPage(wxCommandEvent& event) { PrevPage(); }
-    void OnNextPage(wxCommandEvent& event) { NextPage(); }
-    void OnSave(wxCommandEvent& event) { Save(); }
+    void OnPrevPage([[maybe_unused]] wxCommandEvent& event) { PrevPage(); }
+    void OnNextPage([[maybe_unused]] wxCommandEvent& event) { NextPage(); }
+    void OnSave([[maybe_unused]] wxCommandEvent& event) { Save(); }
     void OnLoad(wxCommandEvent& event);
     void OnUndo(wxCommandEvent& event);
     void OnRedo(wxCommandEvent& event);
-    void OnZoomIn(wxCommandEvent& event) { canvas->ZoomIn(); }
-    void OnZoomOut(wxCommandEvent& event) { canvas->ZoomOut(); }
-    void OnZoomFit(wxCommandEvent& event) { canvas->ZoomFit(); }
-    void OnZoom100(wxCommandEvent& event) { canvas->Zoom(1.0); }
+    void OnZoomIn([[maybe_unused]] wxCommandEvent& event) { canvas->ZoomIn(); }
+    void OnZoomOut([[maybe_unused]] wxCommandEvent& event) { canvas->ZoomOut(); }
+    void OnZoomFit([[maybe_unused]] wxCommandEvent& event) { canvas->ZoomFit(); }
+    void OnZoom100([[maybe_unused]] wxCommandEvent& event) { canvas->Zoom(1.0); }
     void OnCropCurrPage(wxCommandEvent& event);
     void OnCropAllPage(wxCommandEvent& event);
-    void OnClose(wxCommandEvent& event) { ClosePrj(); }
+    void OnClose([[maybe_unused]] wxCommandEvent& event) { ClosePrj(); }
     void OnExit(wxCloseEvent& event) {
         if (!Exit()) event.Veto();
     }
-    void OnExit(wxCommandEvent& event) { Close(); }
+    void OnExit([[maybe_unused]] wxCommandEvent& event) { Close(); }
     void OnAbout(wxCommandEvent& event);
     void OnClickListBox(wxCommandEvent& event);
     void OnChnageCfgFilerPixSize(wxCommandEvent& event) {

@@ -2,7 +2,7 @@
 Language:        Cpp
 BasedOnStyle:  Google
 IndentWidth: 4
-
+ColumnLimit: 100
 
 #IncludeBlocks: Preserve       # 保持头文件分组结构
 SortIncludes: CaseInsensitive   # 开启排序（但通过分组控制例外）
@@ -20,4 +20,3 @@ IncludeCategories:
   - Regex:           '^".*"'
     Priority:        3
 ...
-

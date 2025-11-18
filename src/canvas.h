@@ -46,9 +46,7 @@ class ImageScaleModel {
 
     cv::Mat GetTransformMatrix() const;
 
-    wxRealPoint Transform(wxRealPoint point) const {
-        return scale * point + wxRealPoint(offset);
-    }
+    wxRealPoint Transform(wxRealPoint point) const { return scale * point + wxRealPoint(offset); }
     double TransformX(double x) const { return scale * x + offset.x; }
     double TransformY(double y) const { return scale * y + offset.y; }
     wxRealPoint ReverseTransform(wxRealPoint point) const {

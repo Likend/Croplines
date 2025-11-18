@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstdint>
 
 #include <GL/gl.h>
 #include <wx/graphics.h>
@@ -12,8 +11,7 @@
 
 using namespace Croplines;
 
-ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize,
-                                 double scale)
+ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize, double scale)
     : imageSize(imageSize), windowSize(windowSize), scale(scale) {
     scaledSize = imageSize * scale;
     MoveToCenter();
@@ -108,8 +106,8 @@ cv::Mat ImageScaleModel::GetTransformMatrix() const {
 
 bool ImageScaleModel::IsInsideImage(wxRealPoint worldPoint) const {
     wxRealPoint imagePoint = ReverseTransform(worldPoint);
-    return 0 <= imagePoint.x && imagePoint.x <= imageSize.GetWidth() &&
-           0 <= imagePoint.y && imagePoint.y <= imageSize.GetHeight();
+    return 0 <= imagePoint.x && imagePoint.x <= imageSize.GetWidth() && 0 <= imagePoint.y &&
+           imagePoint.y <= imageSize.GetHeight();
 }
 
 Canvas::Canvas(wxWindow* parent, wxWindowID id)
@@ -126,7 +124,7 @@ Canvas::Canvas(wxWindow* parent, wxWindowID id)
 
 Canvas::~Canvas() {
     if (texture) glDeleteTextures(1, &texture);
-    if (context) delete context;
+    delete context;
 }
 
 static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
@@ -136,8 +134,7 @@ static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // 解决glTexImage2D崩溃问题
-    glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, GL_RGB,
-                 GL_UNSIGNED_BYTE, pixels);
+    glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 }
 
 void Canvas::SetPage(Prj::Page& page) {
@@ -199,15 +196,13 @@ void Canvas::UpdateScrollbars() {
         return;
     }
     if (scaleModel.scaledSize.GetWidth() > scaleModel.windowSize.GetWidth()) {
-        SetScrollbar(wxHORIZONTAL, -scaleModel.offset.x,
-                     scaleModel.windowSize.GetWidth(),
+        SetScrollbar(wxHORIZONTAL, -scaleModel.offset.x, scaleModel.windowSize.GetWidth(),
                      scaleModel.scaledSize.GetWidth());
     } else {
         SetScrollbar(wxHORIZONTAL, -1, -1, -1);
     }
     if (scaleModel.scaledSize.GetHeight() > scaleModel.windowSize.GetHeight()) {
-        SetScrollbar(wxVERTICAL, -scaleModel.offset.y,
-                     scaleModel.windowSize.GetHeight(),
+        SetScrollbar(wxVERTICAL, -scaleModel.offset.y, scaleModel.windowSize.GetHeight(),
                      scaleModel.scaledSize.GetHeight());
     } else {
         SetScrollbar(wxVERTICAL, -1, -1, -1);
@@ -216,7 +211,7 @@ void Canvas::UpdateScrollbars() {
 
 static void InitGL() {
     // 设置OpenGL状态
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
     // 设置深度测试函数
@@ -246,7 +241,7 @@ void UpdateProjection(wxSize size) {
     glOrtho(0, size.GetWidth(), size.GetHeight(), 0, -1, 1);
 }
 
-void Canvas::OnPaint(wxPaintEvent& event) {
+void Canvas::OnPaint([[maybe_unused]] wxPaintEvent& event) {
     wxPaintDC dc(this);
 
     SetCurrent(*context);
@@ -267,13 +262,13 @@ void Canvas::OnPaint(wxPaintEvent& event) {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     glTranslated(scaleModel.offset.x, scaleModel.offset.y, 0);
-    glScalef(scaleModel.scale, scaleModel.scale, 1.0);
+    glScaled(scaleModel.scale, scaleModel.scale, 1.0);
 
     if (IsLoaded()) {
         // 绑定纹理
         wxSize size = scaleModel.imageSize;
         glBegin(GL_QUADS);
-        glColor3f(1.0f, 1.0f, 1.0f);
+        glColor3d(1.0, 1.0, 1.0);
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexCoord2d(0, 0);
         glVertex2d(0, 0);
@@ -287,8 +282,8 @@ void Canvas::OnPaint(wxPaintEvent& event) {
 
         UpdateScrollbars();
 
-        glColor4f(0.8, 0.84, 0.8, 0.25);
-        for (auto area : prj->GetSelectArea(*page)) {
+        glColor4d(0.8, 0.84, 0.8, 0.25);
+        for (const wxRect& area : prj->GetSelectArea(*page)) {
             glBegin(GL_QUADS);
             glVertex2d(area.GetLeft(), area.GetTop());
             glVertex2d(area.GetLeft(), area.GetBottom());
@@ -308,21 +303,21 @@ void Canvas::OnPaint(wxPaintEvent& event) {
         };
 
         // draw crop lines
-        std::optional<std::uint32_t> deleting_line;
+        std::optional<int> deleting_line;
         if (is_deleting && mouse_position) {
             int y = mouse_position->y;
             y = std::lround(scaleModel.ReverseTransformY(y));
             auto search_line =
-                page->SearchNearestLine(y, FromDIP(5 / scaleModel.scale + 1));
+                page->SearchNearestLine(y, FromDIP(static_cast<int>(5.0 / scaleModel.scale) + 1));
             if (search_line) {
                 deleting_line = **search_line;
-                glColor4f(0.15, 0.58, 0.36, 0.5);
+                glColor4d(0.15, 0.58, 0.36, 0.5);
                 DrawLine(4, *deleting_line);
             }
         }
 
-        glColor4f(0.30, 0.74, 0.52, 0.5);
-        for (std::uint32_t line : page->GetCropLines()) {
+        glColor4d(0.30, 0.74, 0.52, 0.5);
+        for (int line : page->GetCropLines()) {
             if (deleting_line == line) continue;
             DrawLine(2, line);
         }
@@ -330,9 +325,9 @@ void Canvas::OnPaint(wxPaintEvent& event) {
         // draw mouse line
         if (mouse_position) {
             if (is_deleting)
-                glColor4f(0.90, 0.08, 0, 0.5);
+                glColor4d(0.90, 0.08, 0, 0.5);
             else
-                glColor4f(0.34, 0.61, 0.84, 0.5);
+                glColor4d(0.34, 0.61, 0.84, 0.5);
             double y = scaleModel.ReverseTransformY(mouse_position->y);
             DrawLine(2, y);
         }
@@ -373,7 +368,7 @@ void Canvas::OnMouseLeftDown(wxMouseEvent& event) {
     mouse_drag_start = event.GetPosition();
 }
 
-void Canvas::OnMouseLeftUp(wxMouseEvent& event) {
+void Canvas::OnMouseLeftUp([[maybe_unused]] wxMouseEvent& event) {
     if (is_mouse_capture) {
         ReleaseMouse();
         is_mouse_capture = false;
@@ -381,7 +376,7 @@ void Canvas::OnMouseLeftUp(wxMouseEvent& event) {
     mouse_drag_start.reset();
 }
 
-void Canvas::OnMouseLeftUp(wxMouseCaptureLostEvent& event) {
+void Canvas::OnMouseLeftUp([[maybe_unused]] wxMouseCaptureLostEvent& event) {
     if (is_mouse_capture) {
         ReleaseMouse();
         is_mouse_capture = false;
@@ -403,8 +398,8 @@ void Canvas::OnMouseRightUp(wxMouseEvent& event) {
     int y = mouse_position.y;
     y = std::lround(scaleModel.ReverseTransformY(y));
     if (is_deleting) {
-        std::optional<std::set<std::uint32_t>::iterator> it =
-            page->SearchNearestLine(y, FromDIP(5 / scaleModel.scale + 1));
+        std::optional<std::set<int>::iterator> it =
+            page->SearchNearestLine(y, FromDIP(static_cast<int>(5.0 / scaleModel.scale) + 1));
         if (it) prj->Execute(Prj::EraseLineRecord(*it, *page));
     } else {
         prj->Execute(Prj::InsertLineRecord(y, *page));
@@ -460,7 +455,7 @@ void Canvas::OnScroll(wxScrollWinEvent& event) {
 void Canvas::OnKeyUp(wxKeyEvent& event) {
     switch (event.GetKeyCode()) {
         case 'D':
-            if (is_deleting == true) {
+            if (is_deleting) {
                 is_deleting = false;
                 Refresh();
             }
@@ -471,7 +466,7 @@ void Canvas::OnKeyUp(wxKeyEvent& event) {
 void Canvas::OnKeyDown(wxKeyEvent& event) {
     switch (event.GetKeyCode()) {
         case 'D':
-            if (is_deleting == false) {
+            if (!is_deleting) {
                 is_deleting = true;
                 Refresh();
             }
