@@ -1,15 +1,19 @@
 #include "core/Document.hpp"
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <optional>
 #include <ranges>
+#include <string_view>
 
 #include <cereal/archives/json.hpp>
+#include <cereal/cereal.hpp>
 
 #include "core/DocumentData.hpp"
+#include "core/Page.hpp"
 #include "utils/Asserts.hpp"
 #include "utils/Compare.hpp"
 
@@ -24,7 +28,7 @@ bool Document::Load(const fs::path& path) {
 
     m_data.emplace();
 
-    fs::path prj_path = path / PROJECT_FILE_NAME;
+    const fs::path prj_path = path / PROJECT_FILE_NAME;
     if (fs::exists(prj_path) && fs::is_regular_file(prj_path)) {
         std::ifstream file(prj_path);
         if (file) {
@@ -62,7 +66,7 @@ void Document::InitializeEmptyProject() {
 
 bool Document::Save() {
     ASSERT_WITH(IsLoad(), "Project not loaded!");
-    fs::path prj_path = cwd / PROJECT_FILE_NAME;
+    const fs::path prj_path = cwd / PROJECT_FILE_NAME;
 
     std::ofstream             file(prj_path);
     cereal::JSONOutputArchive archive(file);

@@ -6,7 +6,6 @@
 #include <opencv2/opencv.hpp>
 #include <wx/cmdproc.h>
 #include <wx/glcanvas.h>
-#include <wx/msw/glcanvas.h>
 #include <wx/wx.h>
 
 #include "core/Document.hpp"

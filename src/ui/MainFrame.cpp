@@ -10,7 +10,7 @@
 #include <wx/chartype.h>
 #include <wx/event.h>
 #include <wx/gdicmn.h>
-#include <wx/msw/listbox.h>
+#include <wx/listbox.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 

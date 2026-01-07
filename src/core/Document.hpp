@@ -5,9 +5,7 @@
 #include <optional>
 
 #include <wx/cmdproc.h>
-#include <wx/datetime.h>
 #include <wx/docview.h>
-#include <wx/event.h>
 #include <wx/xrc/xmlres.h>
 
 #include "core/DocumentData.hpp"

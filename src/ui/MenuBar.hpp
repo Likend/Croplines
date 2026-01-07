@@ -1,7 +1,6 @@
 #pragma once
 
 #include <wx/menu.h>
-#include <wx/msw/menu.h>
 
 namespace croplines {
 class MenuBar : public wxMenuBar {
