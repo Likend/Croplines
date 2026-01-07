@@ -13,10 +13,10 @@
 
 using namespace croplines;
 
-ConfigPanel::ConfigPanel(wxWindow* parent, wxWindowID id) : wxNotebook(parent, id) {
-    m_processPage = new ProcessConfigPage{this, wxID_ANY};
-    m_outputPage  = new OutputConfigPage{this, wxID_ANY};
-
+ConfigPanel::ConfigPanel(wxWindow* parent, wxWindowID id)
+    : wxNotebook(parent, id),
+      m_processPage(new ProcessConfigPage{this, wxID_ANY}),
+      m_outputPage(new OutputConfigPage{this, wxID_ANY}) {
     AddPage(m_processPage, wxT("处理"));
     AddPage(m_outputPage, wxT("输出"));
 }

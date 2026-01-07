@@ -20,8 +20,9 @@ class ImageScaleModel {
     double  scale;
     wxPoint offset;
 
-    ImageScaleModel(wxSize imageSize, wxSize windowSize);
     ImageScaleModel(wxSize imageSize, wxSize windowSize, double scale);
+    ImageScaleModel(wxSize imageSize, wxSize windowSize)
+        : ImageScaleModel(imageSize, windowSize, GetScaleSuitesPage()) {}
 
     void Scale(double factor, wxPoint center);
     void Scale(double factor) { Scale(factor, wxPoint{} + windowSize / 2); }

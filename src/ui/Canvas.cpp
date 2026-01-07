@@ -1,24 +1,24 @@
 #include "ui/Canvas.hpp"
 
+#include <memory>
+
 #include <wx/cmdproc.h>
 
 using namespace croplines;
 
 Canvas::Canvas(wxWindow* parent, wxWindowID id)
     : wxGLCanvas(parent, id, nullptr, wxDefaultPosition, wxDefaultSize,
-                 wxFULL_REPAINT_ON_RESIZE | wxVSCROLL | wxHSCROLL) {
+                 wxFULL_REPAINT_ON_RESIZE | wxVSCROLL | wxHSCROLL),
+      m_glContext(std::make_unique<wxGLContext>(this)) {
     AlwaysShowScrollbars();
 
     // disable on default
     SetScrollbar(wxHORIZONTAL, -1, -1, -1);
     SetScrollbar(wxVERTICAL, -1, -1, -1);
-
-    m_glContext = new wxGLContext(this);
 }
 
 Canvas::~Canvas() {
     if (m_glTexture) glDeleteTextures(1, &m_glTexture);
-    delete m_glContext;
 }
 
 static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
@@ -126,7 +126,7 @@ static void InitGL() {
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
 }
 
-void UpdateProjection(wxSize size) {
+static void UpdateProjection(wxSize size) {
     if (size.GetWidth() <= 0 || size.GetHeight() <= 0) return;
 
     glViewport(0, 0, size.GetWidth(), size.GetHeight());
@@ -353,7 +353,7 @@ void Canvas::OnMouseMotion(wxMouseEvent& event) {
 void Canvas::OnScroll(wxScrollWinEvent& event) {
     if (!IsLoaded()) return;
 
-    const int orientation = event.GetOrientation() & wxORIENTATION_MASK;
+    const unsigned orientation = static_cast<unsigned>(event.GetOrientation()) & wxORIENTATION_MASK;
     switch (orientation & wxORIENTATION_MASK) {
         case wxHORIZONTAL: {
             const int pos0 = GetScrollPos(wxHORIZONTAL);

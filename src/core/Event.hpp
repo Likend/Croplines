@@ -12,11 +12,10 @@ class DocumentEvent final : public wxCommandEvent {
     enum Type : std::uint8_t { Loaded, Saved, UndoDone, RedoDone, Modified };
 
     DocumentEvent(Type actionType) : wxCommandEvent(EVT_DOCUMENT_CHANGED), m_type(actionType) {}
-    DocumentEvent(const DocumentEvent& other) = default;
 
-    DocumentEvent* Clone() const override { return new DocumentEvent(*this); }
+    [[nodiscard]] DocumentEvent* Clone() const override { return new DocumentEvent(*this); }
 
-    Type GetActionType() const { return m_type; }
+    [[nodiscard]] Type GetActionType() const { return m_type; }
 
    private:
     Type m_type;

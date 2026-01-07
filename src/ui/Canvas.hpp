@@ -1,10 +1,12 @@
 #pragma once
 
+#include <memory>
 #include <optional>
 
 #include <opencv2/opencv.hpp>
 #include <wx/cmdproc.h>
 #include <wx/glcanvas.h>
+#include <wx/msw/glcanvas.h>
 #include <wx/wx.h>
 
 #include "core/Document.hpp"
@@ -43,10 +45,10 @@ class Canvas : public wxGLCanvas {
 
     std::optional<ImageScaleModel> m_scaleModel;
 
-    wxGLContext* m_glContext;
-    GLuint       m_glTexture = 0;
-    wxImage      m_imageDst;
-    bool         m_isImageModified = false;
+    std::unique_ptr<wxGLContext> m_glContext;
+    GLuint                       m_glTexture = 0;
+    wxImage                      m_imageDst;
+    bool                         m_isImageModified = false;
 
    private:
     void UpdateScrollbars();

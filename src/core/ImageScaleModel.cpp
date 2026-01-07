@@ -8,13 +8,6 @@ ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize, double sca
     MoveToCenter();
 }
 
-ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize)
-    : imageSize(imageSize), windowSize(windowSize) {
-    scale      = GetScaleSuitesPage();
-    scaledSize = imageSize * scale;
-    MoveToCenter();
-}
-
 void ImageScaleModel::Clamp() {
     wxSize border = windowSize - scaledSize;
     if (border.x < 0) {
