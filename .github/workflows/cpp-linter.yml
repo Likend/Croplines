@@ -2,10 +2,36 @@ name: cpp-linter
 on:
   pull_request:
     branches: [main]
-    paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
+    paths:
+      [
+        "**.c",
+        "**.cpp",
+        "**.h",
+        "**.hpp",
+        "**.cxx",
+        "**.hxx",
+        "**.cc",
+        "**.hh",
+        "**CMakeLists.txt",
+        "meson.build",
+        "**.cmake",
+      ]
   push:
     branches: [main]
-    paths: ['**.c', '**.cpp', '**.h', '**.hpp', '**.cxx', '**.hxx', '**.cc', '**.hh', '**CMakeLists.txt', 'meson.build', '**.cmake']
+    paths:
+      [
+        "**.c",
+        "**.cpp",
+        "**.h",
+        "**.hpp",
+        "**.cxx",
+        "**.hxx",
+        "**.cc",
+        "**.hh",
+        "**CMakeLists.txt",
+        "meson.build",
+        "**.cmake",
+      ]
 
 jobs:
   cpp-linter:
@@ -22,23 +48,31 @@ jobs:
             libeigen3-dev \
             libomp-dev \
             build-essential
-            
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1.2
+        with:
+          key: ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
       - name: Generate Compilation Database
         run: |
           cmake -S . -B build \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-            -DCMAKE_BUILD_TYPE=Debug
-      
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+
       - uses: cpp-linter/cpp-linter-action@v2
         id: linter
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          style: 'file'  # Use .clang-format config file
-          tidy-checks: '' # Use .clang-tidy config file
+          style: "file" # Use .clang-format config file
+          tidy-checks: "" # Use .clang-tidy config file
           # only 'update' a single comment in a pull request thread.
           thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
-          database: 'build'
+          database: "build"
 
       - name: Fail fast?!
         if: steps.linter.outputs.checks-failed > 0
