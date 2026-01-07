@@ -104,24 +104,19 @@ static std::optional<wxRect> CalculateSelectArea(cv::Mat image, int filter_noise
     bool has_point = false;
     for (const auto& contour : contours) {
         if (cv::contourArea(contour) >= filter_noise_size) {
-            int x_min_inner = x_min, x_max_inner = x_max, y_min_inner = y_min, y_max_inner = y_max;
-            for (const auto& point : contour) {
-                if (point.x == 0 || point.x == image.cols - 1 || point.y == 0 ||
-                    point.y == image.rows - 1) {
-                    goto skip_contour;
-                }
-                if (point.x < x_min_inner) x_min_inner = point.x;
-                if (point.x > x_max_inner) x_max_inner = point.x;
-                if (point.y < y_min_inner) y_min_inner = point.y;
-                if (point.y > y_max_inner) y_max_inner = point.y;
+            cv::Rect r = cv::boundingRect(contour);
+
+            // 边缘触碰逻辑（如果靠边则忽略）
+            if (r.x == 0 || r.y == 0 || (r.x + r.width) >= image.cols ||
+                (r.y + r.height) >= image.rows) {
+                continue;
             }
-            x_min     = x_min_inner;
-            x_max     = x_max_inner;
-            y_min     = y_min_inner;
-            y_max     = y_max_inner;
+            // 更新全局最小/最大边界
+            x_min     = std::min(x_min, r.x);
+            y_min     = std::min(y_min, r.y);
+            x_max     = std::max(x_max, r.x + r.width);
+            y_max     = std::max(y_max, r.y + r.height);
             has_point = true;
-        skip_contour:
-            (void)0;
         }
     }
     if (!has_point) return std::nullopt;
