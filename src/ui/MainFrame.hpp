@@ -36,14 +36,14 @@ class MainFrame final : public wxFrame {
     Document            m_doc;
     std::optional<Page> m_currentPage;
 
-    bool Load(std::filesystem::path path);
+    bool Load(const std::filesystem::path& path);
     bool Save();
     bool Close();
 
-    std::size_t CurrentPage() { return m_currentPageIdx; }
-    void        CurrentPage(std::size_t);
-    void        PrevPage() { CurrentPage(CurrentPage() - 1); }
-    void        NextPage() { CurrentPage(CurrentPage() + 1); }
+    [[nodiscard]] std::size_t CurrentPage() const { return m_currentPageIdx; }
+    void                      CurrentPage(std::size_t);
+    void                      PrevPage() { CurrentPage(CurrentPage() - 1); }
+    void                      NextPage() { CurrentPage(CurrentPage() + 1); }
 
     void SyncUIPageListPanel();
     void SyncUIConfigPanel();

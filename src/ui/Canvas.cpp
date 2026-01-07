@@ -37,7 +37,7 @@ void Canvas::SetPage(Page& page) {
         return;
     }
     if (IsLoaded()) {
-        m_scaleModel.OnImageResize(img.GetSize());
+        GetScaleModel().OnImageResize(img.GetSize());
     } else {
         m_scaleModel = ImageScaleModel{img.GetSize(), GetClientSize()};
     }
@@ -53,31 +53,32 @@ void Canvas::SetPage(Page& page) {
 void Canvas::Clear() {
     if (m_glTexture) glDeleteTextures(1, &m_glTexture);
     m_page = nullptr;
+    m_scaleModel.reset();
     Refresh();
 }
 
 void Canvas::ZoomIn() {
     if (!IsLoaded()) return;
-    m_scaleModel.Scale(ImageScaleModel::ZOOM_IN_RATE);
+    GetScaleModel().Scale(ImageScaleModel::ZOOM_IN_RATE);
     Refresh();
 }
 
 void Canvas::ZoomOut() {
     if (!IsLoaded()) return;
-    m_scaleModel.Scale(ImageScaleModel::ZOOM_OUT_RATE);
+    GetScaleModel().Scale(ImageScaleModel::ZOOM_OUT_RATE);
     Refresh();
 }
 
 void Canvas::ZoomFit() {
     if (!IsLoaded()) return;
-    m_scaleModel.ScaleTo(m_scaleModel.GetScaleSuitesPage());
-    m_scaleModel.MoveToCenter();
+    GetScaleModel().ScaleTo(GetScaleModel().GetScaleSuitesPage());
+    GetScaleModel().MoveToCenter();
     Refresh();
 }
 
 void Canvas::Zoom(double scale) {
     if (IsLoaded()) {
-        m_scaleModel.ScaleTo(scale);
+        GetScaleModel().ScaleTo(scale);
         Refresh();
     }
 }
@@ -88,15 +89,15 @@ void Canvas::UpdateScrollbars() {
         SetScrollbar(wxVERTICAL, -1, -1, -1);
         return;
     }
-    if (m_scaleModel.scaledSize.GetWidth() > m_scaleModel.windowSize.GetWidth()) {
-        SetScrollbar(wxHORIZONTAL, -m_scaleModel.offset.x, m_scaleModel.windowSize.GetWidth(),
-                     m_scaleModel.scaledSize.GetWidth());
+    if (GetScaleModel().scaledSize.GetWidth() > GetScaleModel().windowSize.GetWidth()) {
+        SetScrollbar(wxHORIZONTAL, -GetScaleModel().offset.x, GetScaleModel().windowSize.GetWidth(),
+                     GetScaleModel().scaledSize.GetWidth());
     } else {
         SetScrollbar(wxHORIZONTAL, -1, -1, -1);
     }
-    if (m_scaleModel.scaledSize.GetHeight() > m_scaleModel.windowSize.GetHeight()) {
-        SetScrollbar(wxVERTICAL, -m_scaleModel.offset.y, m_scaleModel.windowSize.GetHeight(),
-                     m_scaleModel.scaledSize.GetHeight());
+    if (GetScaleModel().scaledSize.GetHeight() > GetScaleModel().windowSize.GetHeight()) {
+        SetScrollbar(wxVERTICAL, -GetScaleModel().offset.y, GetScaleModel().windowSize.GetHeight(),
+                     GetScaleModel().scaledSize.GetHeight());
     } else {
         SetScrollbar(wxVERTICAL, -1, -1, -1);
     }
@@ -154,12 +155,12 @@ void Canvas::OnPaint(wxPaintEvent&) {
     // 设置投影（透视投影）
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    glTranslated(m_scaleModel.offset.x, m_scaleModel.offset.y, 0);
-    glScaled(m_scaleModel.scale, m_scaleModel.scale, 1.0);
+    glTranslated(GetScaleModel().offset.x, GetScaleModel().offset.y, 0);
+    glScaled(GetScaleModel().scale, GetScaleModel().scale, 1.0);
 
     if (IsLoaded()) {
         // 绑定纹理
-        wxSize size = m_scaleModel.imageSize;
+        wxSize size = GetScaleModel().imageSize;
         glBegin(GL_QUADS);
         glColor3d(1.0, 1.0, 1.0);
         glBindTexture(GL_TEXTURE_2D, m_glTexture);
@@ -186,7 +187,7 @@ void Canvas::OnPaint(wxPaintEvent&) {
         }
 
         auto DrawLine = [&size, this](int width, double line_y) {
-            double w = FromDIP(width) / m_scaleModel.scale;
+            double w = FromDIP(width) / GetScaleModel().scale;
             glBegin(GL_QUADS);
             glVertex2d(0, line_y - w);
             glVertex2d(0, line_y + w);
@@ -199,10 +200,10 @@ void Canvas::OnPaint(wxPaintEvent&) {
         std::optional<int> deleting_line;
         if (m_isDeleting && m_mouseCurrentPosition) {
             int y = m_mouseCurrentPosition->y;
-            y     = std::lround(m_scaleModel.ReverseTransformY(y));
+            y     = std::lround(GetScaleModel().ReverseTransformY(y));
 
             auto search_line = m_page->SearchNearestLine(
-                y, FromDIP(static_cast<int>(5.0 / m_scaleModel.scale) + 1));
+                y, FromDIP(static_cast<int>(5.0 / GetScaleModel().scale) + 1));
             if (search_line.has_value()) {
                 deleting_line = *search_line;
                 glColor4d(0.15, 0.58, 0.36, 0.5);
@@ -222,7 +223,7 @@ void Canvas::OnPaint(wxPaintEvent&) {
                 glColor4d(0.90, 0.08, 0, 0.5);
             else
                 glColor4d(0.34, 0.61, 0.84, 0.5);
-            double y = m_scaleModel.ReverseTransformY(m_mouseCurrentPosition->y);
+            double y = GetScaleModel().ReverseTransformY(m_mouseCurrentPosition->y);
             DrawLine(2, y);
         }
     }
@@ -235,7 +236,7 @@ void Canvas::OnSize(wxSizeEvent& event) {
         SetCurrent(*m_glContext);
         UpdateProjection(GetClientSize());
     }
-    if (IsLoaded()) m_scaleModel.OnWindowResize(event.GetSize());
+    if (IsLoaded()) GetScaleModel().OnWindowResize(event.GetSize());
     Refresh();
 }
 
@@ -248,7 +249,7 @@ void Canvas::OnMouseWheel(wxMouseEvent& event) {
     } else {  // zoom out
         factor = ImageScaleModel::ZOOM_OUT_RATE;
     }
-    m_scaleModel.Scale(factor, event.GetPosition());
+    GetScaleModel().Scale(factor, event.GetPosition());
     Refresh();
 }
 
@@ -313,12 +314,12 @@ void Canvas::OnMouseRightUp(wxMouseEvent& event) {
     if (!IsLoaded()) return;
 
     wxPoint mousePosition = event.GetPosition();
-    if (!m_scaleModel.IsInsideImage(mousePosition)) return;
+    if (!GetScaleModel().IsInsideImage(mousePosition)) return;
 
     int y = mousePosition.y;
-    y     = std::lround(m_scaleModel.ReverseTransformY(y));
+    y     = std::lround(GetScaleModel().ReverseTransformY(y));
     if (m_isDeleting) {
-        int  threshold = static_cast<int>(5.0 / m_scaleModel.scale) + 1;
+        int  threshold = static_cast<int>(5.0 / GetScaleModel().scale) + 1;
         auto line      = m_page->SearchNearestLine(y, FromDIP(threshold));
         if (line.has_value()) GetProcessor()->Submit(new EraseLineCommand{GetPage(), *line});
     } else {
@@ -333,14 +334,14 @@ void Canvas::OnMouseMotion(wxMouseEvent& event) {
     wxPoint mouse_drag = event.GetPosition();
     if (m_mouseDragStartPosition && event.Dragging()) {
         auto dr = mouse_drag - *m_mouseDragStartPosition;
-        m_scaleModel.Move(dr);
+        GetScaleModel().Move(dr);
         *m_mouseDragStartPosition = mouse_drag;
         Refresh();
     }
 
     // if mouse inside image
     wxPoint mouse_position = event.GetPosition();
-    if (m_scaleModel.IsInsideImage(mouse_position)) {
+    if (GetScaleModel().IsInsideImage(mouse_position)) {
         m_mouseCurrentPosition = mouse_position;
         Refresh();
     } else if (m_mouseCurrentPosition) {
@@ -357,14 +358,14 @@ void Canvas::OnScroll(wxScrollWinEvent& event) {
         case wxHORIZONTAL: {
             const int pos0 = GetScrollPos(wxHORIZONTAL);
             const int pos1 = event.GetPosition();
-            m_scaleModel.Move(wxPoint{pos0 - pos1, 0});
+            GetScaleModel().Move(wxPoint{pos0 - pos1, 0});
             Refresh();
             return;
         }
         case wxVERTICAL: {
             const int pos0 = GetScrollPos(wxVERTICAL);
             const int pos1 = event.GetPosition();
-            m_scaleModel.Move(wxPoint{0, pos0 - pos1});
+            GetScaleModel().Move(wxPoint{0, pos0 - pos1});
             Refresh();
             return;
         }

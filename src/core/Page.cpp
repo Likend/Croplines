@@ -93,7 +93,7 @@ std::optional<int> Page::SearchNearestLine(int searchPosition, int threshold) co
     filter_noise_size: 忽略黑像素的大小
     expand_size: 留边空白大小
 */
-static std::optional<wxRect> CalculateSelectArea(cv::Mat image, int filter_noise_size,
+static std::optional<wxRect> CalculateSelectArea(const cv::Mat& image, int filter_noise_size,
                                                  int expand_size, int base_line) {
     cv::Mat img_dst;
     cv::cvtColor(image, img_dst, cv::COLOR_RGB2GRAY);

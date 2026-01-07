@@ -82,7 +82,7 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
                                      .MinSize(FromDIP(wxSize(350, -1))));
 
     m_pageListPanel = new wxListBox{this, panelID_PAGE_LIST, wxDefaultPosition, wxDefaultSize,
-                                    0,    nullptr,        wxLB_NEEDED_SB};
+                                    0,    nullptr,           wxLB_NEEDED_SB};
     m_mgr.AddPane(m_pageListPanel, wxAuiPaneInfo()
                                        .Left()
                                        .Caption(wxT("页面列表"))
@@ -103,7 +103,7 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
     m_menuBar->Disable();
 }
 
-bool MainFrame::Load(std::filesystem::path path) {
+bool MainFrame::Load(const std::filesystem::path& path) {
     if (m_doc.IsLoad()) {
         if (!Close()) return false;
     }

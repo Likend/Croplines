@@ -22,20 +22,20 @@ class Document {
                                                       ".tiff", ".tif", ".webp"};
     constexpr static const char* PROJECT_FILE_NAME = "croplines.json";
 
-    bool Load(const std::filesystem::path& path);
-    bool Save();
-    bool Close();
-    bool IsLoad() const { return m_data.has_value(); };
+    bool               Load(const std::filesystem::path& path);
+    bool               Save();
+    bool               Close();
+    [[nodiscard]] bool IsLoad() const { return m_data.has_value(); };
 
-    const std::filesystem::path& GetPath() const { return cwd; }
+    [[nodiscard]] const std::filesystem::path& GetPath() const { return cwd; }
 
-    wxCommandProcessor* GetProcessor() const { return m_processor; }
+    [[nodiscard]] wxCommandProcessor* GetProcessor() const { return m_processor; }
 
-    bool IsModified() const { return m_modified; }
-    void SetModified(bool modified = true);
+    [[nodiscard]] bool IsModified() const { return m_modified; }
+    void               SetModified(bool modified = true);
 
-    size_t PagesSize() const { return m_data->pages.size(); };
-    Page   LoadPage(size_t index);
+    [[nodiscard]] size_t PagesSize() const { return m_data->pages.size(); };
+    Page                 LoadPage(size_t index);
 
     bool SaveAllCrops();
 

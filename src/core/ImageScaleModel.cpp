@@ -92,3 +92,6 @@ bool ImageScaleModel::IsInsideImage(wxRealPoint worldPoint) const {
     return 0 <= imagePoint.x && imagePoint.x <= imageSize.GetWidth() && 0 <= imagePoint.y &&
            imagePoint.y <= imageSize.GetHeight();
 }
+wxRealPoint croplines::ImageScaleModel::Transform(wxRealPoint point) const {
+    return scale * point + wxRealPoint(offset);
+}

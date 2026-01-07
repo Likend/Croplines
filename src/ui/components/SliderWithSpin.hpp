@@ -16,14 +16,14 @@ class SliderWithSpin : public wxPanel {
 
     bool Enable(bool enable = false) override;
 
-    int  GetValue() const { return m_value; }
-    void SetValue(int value);
+    [[nodiscard]] int GetValue() const { return m_value; }
+    void              SetValue(int value);
 
    private:
-    wxStaticText* m_label;
-    wxSlider*     m_slider;
-    wxSpinCtrl*   m_spin;
-    int           m_value;
+    wxStaticText* m_label  = nullptr;
+    wxSlider*     m_slider = nullptr;
+    wxSpinCtrl*   m_spin   = nullptr;
+    int           m_value  = 0;
 
     void CallEvent(int value);
     void OnSliderChanging(wxCommandEvent&);

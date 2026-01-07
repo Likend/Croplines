@@ -20,7 +20,6 @@ class ImageScaleModel {
     double  scale;
     wxPoint offset;
 
-    ImageScaleModel() = default;
     ImageScaleModel(wxSize imageSize, wxSize windowSize);
     ImageScaleModel(wxSize imageSize, wxSize windowSize, double scale);
 
@@ -33,22 +32,22 @@ class ImageScaleModel {
     void OnWindowResize(wxSize windowSizeNew);
     void OnImageResize(wxSize imageSizeNew);
 
-    double GetScaleSuitesPage() const;
-    double GetScaleSuitesWidth() const;
-    double GetScaleSuitesHeight() const;
+    [[nodiscard]] double GetScaleSuitesPage() const;
+    [[nodiscard]] double GetScaleSuitesWidth() const;
+    [[nodiscard]] double GetScaleSuitesHeight() const;
 
-    cv::Mat GetTransformMatrix() const;
+    [[nodiscard]] cv::Mat GetTransformMatrix() const;
 
-    wxRealPoint Transform(wxRealPoint point) const { return scale * point + wxRealPoint(offset); }
-    double      TransformX(double x) const { return scale * x + offset.x; }
-    double      TransformY(double y) const { return scale * y + offset.y; }
-    wxRealPoint ReverseTransform(wxRealPoint point) const {
+    [[nodiscard]] wxRealPoint Transform(wxRealPoint point) const;
+    [[nodiscard]] double      TransformX(double x) const { return scale * x + offset.x; }
+    [[nodiscard]] double      TransformY(double y) const { return scale * y + offset.y; }
+    [[nodiscard]] wxRealPoint ReverseTransform(wxRealPoint point) const {
         return (point - wxRealPoint(offset)) / scale;
     }
-    double ReverseTransformX(double x) const { return (x - offset.x) / scale; }
-    double ReverseTransformY(double y) const { return (y - offset.y) / scale; }
+    [[nodiscard]] double ReverseTransformX(double x) const { return (x - offset.x) / scale; }
+    [[nodiscard]] double ReverseTransformY(double y) const { return (y - offset.y) / scale; }
 
-    bool IsInsideImage(wxRealPoint worldPoint) const;
+    [[nodiscard]] bool IsInsideImage(wxRealPoint worldPoint) const;
 
    private:
     void Clamp();

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <optional>
+
 #include <opencv2/opencv.hpp>
 #include <wx/cmdproc.h>
 #include <wx/glcanvas.h>
@@ -20,9 +22,9 @@ class Canvas : public wxGLCanvas {
     Document&           GetDocument() { return GetPage().GetDocument(); }
     wxCommandProcessor* GetProcessor() { return GetDocument().GetProcessor(); }
 
-    void             Clear();
-    bool             IsLoaded() const { return m_page != nullptr; }
-    ImageScaleModel& getScaleModel() { return m_scaleModel; }
+    void               Clear();
+    [[nodiscard]] bool IsLoaded() const { return m_page != nullptr; }
+    ImageScaleModel&   GetScaleModel() { return m_scaleModel.value(); }
 
     void ZoomIn();
     void ZoomOut();
@@ -37,11 +39,12 @@ class Canvas : public wxGLCanvas {
     std::optional<wxPoint> m_mouseDragStartPosition;
     std::optional<wxPoint> m_mouseCurrentPosition;
 
-    Page*           m_page = nullptr;
-    ImageScaleModel m_scaleModel;
+    Page* m_page = nullptr;
+
+    std::optional<ImageScaleModel> m_scaleModel;
 
     wxGLContext* m_glContext;
-    GLuint       m_glTexture;
+    GLuint       m_glTexture = 0;
     wxImage      m_imageDst;
     bool         m_isImageModified = false;
 
