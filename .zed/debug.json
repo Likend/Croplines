@@ -1,0 +1,10 @@
+[
+  {
+    "label": "Debug",
+    "cwd": "./build",
+    "program": "Croplines.exe",
+    "request": "launch",
+    "adapter": "GDB",
+    "build": "CMake build debug"
+  }
+]
