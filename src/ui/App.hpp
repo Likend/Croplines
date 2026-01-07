@@ -3,7 +3,7 @@
 
 #include "ui/MainFrame.hpp"
 
-namespace Croplines {
+namespace croplines {
 class CroplinesApp : public wxApp {
    private:
     MainFrame* m_frame;
@@ -12,4 +12,4 @@ class CroplinesApp : public wxApp {
     // 这个函数将会在程序启动的时候被调用
     bool OnInit() override;
 };
-}  // namespace Croplines
+}  // namespace croplines

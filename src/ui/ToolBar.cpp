@@ -4,7 +4,7 @@
 
 #include "ui/Defs.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 
 ToolBar::ToolBar(wxWindow* parent, wxWindowID id)
     : wxAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,

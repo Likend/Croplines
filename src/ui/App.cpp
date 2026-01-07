@@ -5,7 +5,7 @@
 
 #include "ui/MainFrame.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 
 IMPLEMENT_APP(CroplinesApp)
 

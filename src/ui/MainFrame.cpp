@@ -22,7 +22,7 @@
 #include "ui/ToolBar.hpp"
 #include "utils/Asserts.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 
 MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
                      const wxSize& size)

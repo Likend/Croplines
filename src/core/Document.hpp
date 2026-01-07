@@ -14,7 +14,7 @@
 #include "core/Event.hpp"
 #include "core/Page.hpp"
 
-namespace Croplines {
+namespace croplines {
 
 class Document {
    public:
@@ -54,4 +54,4 @@ class Document {
     void InitializeEmptyProject();
 };
 
-}  // namespace Croplines
+}  // namespace croplines

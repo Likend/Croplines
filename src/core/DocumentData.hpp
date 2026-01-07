@@ -10,7 +10,7 @@
 #include <cereal/types/set.hpp>
 #include <cereal/types/vector.hpp>
 
-namespace Croplines {
+namespace croplines {
 struct DocumentConfig {
     constexpr static const char* DEFAULT_OUTPUT_DIR = "out";
 
@@ -76,7 +76,7 @@ struct DocumentData {
         ar(cereal::make_nvp("pages", PagesProxy{pages}));
     }
 };
-}  // namespace Croplines
+}  // namespace croplines
 
 // Add support for cereal serializing std::filesystem::path
 namespace std {

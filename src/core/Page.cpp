@@ -9,7 +9,7 @@
 #include "core/DocumentData.hpp"
 #include "utils/Asserts.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 namespace fs = std::filesystem;
 
 DocumentConfig& Page::GetConfig() const { return m_doc.GetConfig(); }

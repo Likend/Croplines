@@ -9,7 +9,7 @@
 #include "core/ImageScaleModel.hpp"
 #include "core/Page.hpp"
 
-namespace Croplines {
+namespace croplines {
 class Canvas : public wxGLCanvas {
    public:
     Canvas(wxWindow* parent, wxWindowID id);
@@ -68,4 +68,4 @@ class Canvas : public wxGLCanvas {
 
     wxDECLARE_EVENT_TABLE();
 };
-}  // namespace Croplines
+}  // namespace croplines

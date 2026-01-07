@@ -2,7 +2,7 @@
 
 #include <wx/cmdproc.h>
 
-using namespace Croplines;
+using namespace croplines;
 
 Canvas::Canvas(wxWindow* parent, wxWindowID id)
     : wxGLCanvas(parent, id, nullptr, wxDefaultPosition, wxDefaultSize,

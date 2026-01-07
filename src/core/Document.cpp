@@ -13,7 +13,7 @@
 #include "utils/Asserts.hpp"
 #include "utils/Compare.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 namespace fs = std::filesystem;
 
 bool Document::Load(const fs::path& path) {

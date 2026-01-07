@@ -1,7 +1,7 @@
 #include <wx/event.h>
 #include <wx/thread.h>
 
-namespace Croplines {
+namespace croplines {
 
 wxDECLARE_EVENT(EVT_DOCUMENT_CHANGED, wxCommandEvent);
 
@@ -20,4 +20,4 @@ class DocumentEvent final : public wxCommandEvent {
     Type m_type;
 };
 
-}  // namespace Croplines
+}  // namespace croplines

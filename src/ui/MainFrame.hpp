@@ -15,7 +15,7 @@
 #include "ui/MenuBar.hpp"
 #include "ui/ToolBar.hpp"
 
-namespace Croplines {
+namespace croplines {
 class MainFrame final : public wxFrame {
    public:
     MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
@@ -75,4 +75,4 @@ class MainFrame final : public wxFrame {
 
     wxDECLARE_EVENT_TABLE();
 };
-}  // namespace Croplines
+}  // namespace croplines

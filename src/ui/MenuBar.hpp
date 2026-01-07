@@ -3,7 +3,7 @@
 #include <wx/menu.h>
 #include <wx/msw/menu.h>
 
-namespace Croplines {
+namespace croplines {
 class MenuBar : public wxMenuBar {
    public:
     wxMenu* m_menuFile = new wxMenu{};
@@ -16,4 +16,4 @@ class MenuBar : public wxMenuBar {
     using wxMenuBar::Enable;
     bool Enable(bool enable = true) override;
 };
-}  // namespace Croplines
+}  // namespace croplines

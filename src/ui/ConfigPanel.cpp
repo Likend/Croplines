@@ -11,7 +11,7 @@
 #include "core/DocumentData.hpp"
 #include "ui/Defs.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 
 ConfigPanel::ConfigPanel(wxWindow* parent, wxWindowID id) : wxNotebook(parent, id) {
     m_processPage = new ProcessConfigPage{this, wxID_ANY};

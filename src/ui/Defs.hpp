@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Croplines {
+namespace croplines {
 enum {
     buttonID_CROP_CURR_PAGE = 1000,
     buttonID_CROP_ALL_PAGE,

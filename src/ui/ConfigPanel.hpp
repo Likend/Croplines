@@ -8,7 +8,7 @@
 #include "core/DocumentData.hpp"
 #include "ui/components/SliderWithSpin.hpp"
 
-namespace Croplines {
+namespace croplines {
 
 class ProcessConfigPage;
 class OutputConfigPage;
@@ -44,4 +44,4 @@ class OutputConfigPage : public wxPanel {
     SliderWithSpin* m_sliderBorder;
 };
 
-}  // namespace Croplines
+}  // namespace croplines

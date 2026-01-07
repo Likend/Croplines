@@ -6,7 +6,7 @@
 #include <wx/spinctrl.h>
 #include <wx/wx.h>
 
-namespace Croplines {
+namespace croplines {
 class SliderWithSpin : public wxPanel {
    public:
     SliderWithSpin() : wxPanel() {}
@@ -34,4 +34,4 @@ class SliderWithSpin : public wxPanel {
     wxDECLARE_EVENT_TABLE();
     wxDECLARE_DYNAMIC_CLASS_NO_COPY(SliderWithSpin);
 };
-}  // namespace Croplines
+}  // namespace croplines

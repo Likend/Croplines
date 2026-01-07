@@ -2,7 +2,7 @@
 #include <opencv2/opencv.hpp>
 #include <wx/wx.h>
 
-namespace Croplines {
+namespace croplines {
 
 class ImageScaleModel {
    public:
@@ -53,4 +53,4 @@ class ImageScaleModel {
    private:
     void Clamp();
 };
-}  // namespace Croplines
+}  // namespace croplines

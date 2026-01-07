@@ -2,7 +2,7 @@
 
 #include "ui/Defs.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 
 MenuBar::MenuBar() : wxMenuBar() {
     m_menuFile->Append(wxID_OPEN, wxT("&Load\tCtrl+O"));

@@ -1,6 +1,6 @@
 #include "core/ImageScaleModel.hpp"
 
-using namespace Croplines;
+using namespace croplines;
 
 ImageScaleModel::ImageScaleModel(wxSize imageSize, wxSize windowSize, double scale)
     : imageSize(imageSize), windowSize(windowSize), scale(scale) {

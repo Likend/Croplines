@@ -3,7 +3,7 @@
 #include <wx/event.h>
 #include <wx/object.h>
 
-using namespace Croplines;
+using namespace croplines;
 
 constexpr int SLIDER_ID = 1100;
 constexpr int SPIN_ID   = 1101;

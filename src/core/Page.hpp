@@ -11,7 +11,7 @@
 
 #include "core/DocumentData.hpp"
 
-namespace Croplines {
+namespace croplines {
 
 class Document;
 
@@ -53,4 +53,4 @@ class Page {
     void LoadImage() { m_image.LoadFile(wxString(GetImagePath())); }
     void CalculateSelectAreas();
 };
-}  // namespace Croplines
+}  // namespace croplines
