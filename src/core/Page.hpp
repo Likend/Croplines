@@ -19,11 +19,11 @@ class Page {
    public:
     ~Page() { m_image.Destroy(); }
 
-    Document&                    getDocument() const { return m_doc; }
-    DocumentConfig&              getConfig() const;
-    const std::filesystem::path& getImagePath() const { return m_pageData.path; }
-    const std::set<int>&         getCropLines() const { return m_pageData.crop_lines; }
-    wxImage&                     getImage() { return m_image; }
+    Document&                    GetDocument() const { return m_doc; }
+    DocumentConfig&              GetConfig() const;
+    const std::filesystem::path& GetImagePath() const { return m_pageData.path; }
+    const std::set<int>&         GetCropLines() const { return m_pageData.crop_lines; }
+    wxImage&                     GetImage() { return m_image; }
 
     const std::vector<wxRect>& getSelectAreas() {
         if (m_modified) CalculateSelectAreas();
@@ -42,7 +42,7 @@ class Page {
 
     Page(Document& doc, PageData& data) : m_doc(doc), m_pageData(data) { LoadImage(); }
 
-    bool m_modified = true; // 用来提示 CalculateSelectAreas 的惰性求值
+    bool m_modified = true;  // 用来提示 CalculateSelectAreas 的惰性求值
 
     Document& m_doc;
     PageData& m_pageData;
@@ -50,7 +50,7 @@ class Page {
     std::vector<wxRect> m_selectAreas;
     wxImage             m_image;
 
-    void LoadImage() { m_image.LoadFile(wxString(getImagePath())); }
+    void LoadImage() { m_image.LoadFile(wxString(GetImagePath())); }
     void CalculateSelectAreas();
 };
 }  // namespace Croplines

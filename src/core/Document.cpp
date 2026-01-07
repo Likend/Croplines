@@ -29,7 +29,7 @@ bool Document::Load(const fs::path& path) {
         std::ifstream file(prj_path);
         if (file) {
             cereal::JSONInputArchive archive(file);
-            archive(cereal::make_nvp("prj", getData()));
+            archive(cereal::make_nvp("prj", GetData()));
             m_modified = false;
             return true;
         }
@@ -57,29 +57,29 @@ void Document::InitializeEmptyProject() {
         m_data->pages,
         [](std::string_view s1, std::string_view s2) { return NaturalCompare(s1, s2) < 0; }, pred);
 
-    setModified();
+    SetModified();
 }
 
 bool Document::Save() {
-    ASSERT_WITH(isLoad(), "Project not loaded!");
+    ASSERT_WITH(IsLoad(), "Project not loaded!");
     fs::path prj_path = cwd / PROJECT_FILE_NAME;
 
     std::ofstream             file(prj_path);
     cereal::JSONOutputArchive archive(file);
-    archive(cereal::make_nvp("prj", getData()));
+    archive(cereal::make_nvp("prj", GetData()));
     m_modified = false;
     return true;
 }
 
 bool Document::Close() {
-    ASSERT_WITH(isLoad(), "Project not loaded!");
+    ASSERT_WITH(IsLoad(), "Project not loaded!");
     m_modified = false;
     m_data.reset();
     m_processor->ClearCommands();
     return true;
 }
 
-void Document::setModified(bool modified) { m_modified = modified; }
+void Document::SetModified(bool modified) { m_modified = modified; }
 
 Page Document::LoadPage(size_t index) {
     ASSERT_WITH(index < PagesSize(), "indx out of range");
@@ -88,7 +88,7 @@ Page Document::LoadPage(size_t index) {
 }
 
 bool Document::SaveAllCrops() {
-    ASSERT_WITH(isLoad(), "Project not loaded!");
+    ASSERT_WITH(IsLoad(), "Project not loaded!");
     bool success = true;
     for (size_t i = 0; i < PagesSize(); i++) {
         Page page = LoadPage(i);

@@ -5,37 +5,57 @@
 using namespace Croplines;
 
 MenuBar::MenuBar() : wxMenuBar() {
-    menu_file->Append(wxID_OPEN, wxT("&Load\tCtrl+O"));
-    menu_file->Append(wxID_SAVE);
-    menu_file->AppendSeparator();
-    menu_file->Append(buttonID_CROP_CURR_PAGE, wxT("Crop &current page"),
+    m_menuFile->Append(wxID_OPEN, wxT("&Load\tCtrl+O"));
+    m_menuFile->Append(wxID_SAVE);
+    m_menuFile->AppendSeparator();
+    m_menuFile->Append(buttonID_CROP_CURR_PAGE, wxT("Crop &current page"),
                       wxT("Crop current page to subimages and save each one to "
                           "output directory"));
-    menu_file->Append(buttonID_CROP_ALL_PAGE, wxT("Crop &all pages"),
+    m_menuFile->Append(buttonID_CROP_ALL_PAGE, wxT("Crop &all pages"),
                       wxT("Crop all pages to subimages and save each one to "
                           "output directory"));
-    menu_file->AppendSeparator();
-    menu_file->Append(wxID_CLOSE);
-    menu_file->Append(wxID_EXIT);
+    m_menuFile->AppendSeparator();
+    m_menuFile->Append(wxID_CLOSE);
+    m_menuFile->Append(wxID_EXIT);
 
-    Append(menu_file, wxT("&File"));
+    Append(m_menuFile, wxT("&File"));
 
-    menu_edit->Append(wxID_UNDO);
-    menu_edit->Append(wxID_REDO);
-    menu_edit->AppendSeparator();
-    menu_edit->Append(wxID_UP, wxT("Last page\tUp"), wxT("Move to last page"));
-    menu_edit->Append(wxID_DOWN, wxT("Next page\tDown"), wxT("Move to next page"));
+    m_menuEdit->Append(wxID_UNDO);
+    m_menuEdit->Append(wxID_REDO);
+    m_menuEdit->AppendSeparator();
+    m_menuEdit->Append(wxID_UP, wxT("Last page\tUp"), wxT("Move to last page"));
+    m_menuEdit->Append(wxID_DOWN, wxT("Next page\tDown"), wxT("Move to next page"));
 
-    Append(menu_edit, wxT("&Edit"));
+    Append(m_menuEdit, wxT("&Edit"));
 
-    menu_view->Append(wxID_ZOOM_IN);
-    menu_view->Append(wxID_ZOOM_OUT);
-    menu_view->Append(wxID_ZOOM_FIT);
-    menu_view->Append(wxID_ZOOM_100);
+    m_menuView->Append(wxID_ZOOM_IN);
+    m_menuView->Append(wxID_ZOOM_OUT);
+    m_menuView->Append(wxID_ZOOM_FIT);
+    m_menuView->Append(wxID_ZOOM_100);
 
-    Append(menu_view, wxT("&View"));
+    Append(m_menuView, wxT("&View"));
 
-    menu_help->Append(wxID_ABOUT);
+    m_menuHelp->Append(wxID_ABOUT);
 
-    Append(menu_help, wxT("&Help"));
+    Append(m_menuHelp, wxT("&Help"));
+}
+
+bool MenuBar::Enable(bool enable) {
+    // Do not enable wxID_OPEN
+    static int needToEnable[] = {
+        wxID_SAVE,
+        wxID_CLOSE,
+        wxID_UP,
+        wxID_DOWN,
+        wxID_ZOOM_FIT,
+        wxID_ZOOM_OUT,
+        wxID_ZOOM_IN,
+        wxID_ZOOM_100,
+        buttonID_CROP_ALL_PAGE,
+        buttonID_CROP_CURR_PAGE,
+    };
+
+    for (int id : needToEnable) Enable(id, enable);
+
+    return true;
 }

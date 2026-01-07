@@ -25,22 +25,22 @@ class Document {
     bool Load(const std::filesystem::path& path);
     bool Save();
     bool Close();
-    bool isLoad() const { return m_data.has_value(); };
+    bool IsLoad() const { return m_data.has_value(); };
 
     const std::filesystem::path& GetPath() const { return cwd; }
 
     wxCommandProcessor* GetProcessor() const { return m_processor; }
 
-    bool isModified() const { return m_modified; }
-    void setModified(bool modified = true);
+    bool IsModified() const { return m_modified; }
+    void SetModified(bool modified = true);
 
     size_t PagesSize() const { return m_data->pages.size(); };
     Page   LoadPage(size_t index);
 
     bool SaveAllCrops();
 
-    DocumentData&   getData() { return m_data.value(); }
-    DocumentConfig& getConfig() { return getData().config; }
+    DocumentData&   GetData() { return m_data.value(); }
+    DocumentConfig& GetConfig() { return GetData().config; }
 
    private:
     bool m_modified = false;

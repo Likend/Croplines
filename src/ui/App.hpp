@@ -6,7 +6,7 @@
 namespace Croplines {
 class CroplinesApp : public wxApp {
    private:
-    MainFrame* frame;
+    MainFrame* m_frame;
 
    public:
     // 这个函数将会在程序启动的时候被调用

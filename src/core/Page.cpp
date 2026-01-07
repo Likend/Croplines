@@ -12,19 +12,19 @@
 using namespace Croplines;
 namespace fs = std::filesystem;
 
-DocumentConfig& Page::getConfig() const { return m_doc.getConfig(); }
+DocumentConfig& Page::GetConfig() const { return m_doc.GetConfig(); }
 
 bool Page::InsertLine(int line) {
     auto [it, modified] = m_pageData.crop_lines.insert(line);
     m_modified |= modified;
-    getDocument().setModified();
+    GetDocument().SetModified();
     return modified;
 }
 
 bool Page::EraseLine(int line) {
     bool modified = m_pageData.crop_lines.erase(line) != 0;
     m_modified |= modified;
-    getDocument().setModified();
+    GetDocument().SetModified();
     return modified;
 }
 
@@ -32,7 +32,7 @@ bool Page::SaveCrops() {
     if (!m_image.IsOk()) return false;
 
     std::size_t count = 1;
-    fs::create_directories(getConfig().output_dir);
+    fs::create_directories(GetConfig().output_dir);
     for (wxRect area : getSelectAreas()) {
         wxImage sub_image = m_image.GetSubImage(area);
         // TODO
@@ -57,8 +57,8 @@ bool Page::SaveCrops() {
                                 m_image.GetOptionInt(wxIMAGE_OPTION_TIFF_COMPRESSION));
 
         fs::path file_path =
-            getConfig().output_dir / std::format("{}-{}{}", getImagePath().stem().string(), count,
-                                                 getImagePath().extension().string());
+            GetConfig().output_dir / std::format("{}-{}{}", GetImagePath().stem().string(), count,
+                                                 GetImagePath().extension().string());
         // bitmap.SaveFile(wxString(file_path), image.GetType());
         sub_image.SaveFile(wxString(file_path), m_image.GetType());
         count++;
@@ -67,7 +67,7 @@ bool Page::SaveCrops() {
 }
 
 std::optional<int> Page::SearchNearestLine(int searchPosition, int threshold) const {
-    const std::set<int>& cropLines = getCropLines();
+    const std::set<int>& cropLines = GetCropLines();
     if (cropLines.empty()) return std::nullopt;
 
     auto it1 = cropLines.lower_bound(searchPosition);
@@ -142,11 +142,11 @@ void Page::CalculateSelectAreas() {
 
     auto invokeCalculation = [this, &image](int line, int prev_line) {
         cv::Mat sub_image = image.rowRange(prev_line, line);
-        auto    area = CalculateSelectArea(sub_image, getConfig().filter_noise_size, 0, prev_line);
+        auto    area = CalculateSelectArea(sub_image, GetConfig().filter_noise_size, 0, prev_line);
         if (area) m_selectAreas.push_back(*area);
     };
 
-    for (int line : getCropLines()) {
+    for (int line : GetCropLines()) {
         invokeCalculation(line, prev_line);
         prev_line = line;
     }

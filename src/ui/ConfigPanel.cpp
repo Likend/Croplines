@@ -23,7 +23,7 @@ ConfigPanel::ConfigPanel(wxWindow* parent, wxWindowID id) : wxNotebook(parent, i
 
 ProcessConfigPage::ProcessConfigPage(wxWindow* parent, wxWindowID id) : wxPanel(parent, id) {
     m_sliderPixFilter =
-        new SliderWithSpin{this, sldid_cfg_PIX_FILTER, wxT("忽略斑点直径"), 8, 0, 50};
+        new SliderWithSpin{this, sliderID_cfg_PIX_FILTER, wxT("忽略斑点直径"), 8, 0, 50};
 
     auto* bSizer = new wxBoxSizer{wxVERTICAL};
     bSizer->Add(m_sliderPixFilter, 0, wxEXPAND, 5);
@@ -34,7 +34,7 @@ ProcessConfigPage::ProcessConfigPage(wxWindow* parent, wxWindowID id) : wxPanel(
 }
 
 OutputConfigPage::OutputConfigPage(wxWindow* parent, wxWindowID id) : wxPanel(parent, id) {
-    m_sliderBorder = new SliderWithSpin{this, sldid_cfg_BORDER, wxT("空白边距"), 10, 0, 100};
+    m_sliderBorder = new SliderWithSpin{this, sliderID_cfg_BORDER, wxT("空白边距"), 10, 0, 100};
 
     auto* bSizer = new wxBoxSizer{wxVERTICAL};
     bSizer->Add(m_sliderBorder, 0, wxEXPAND, 5);

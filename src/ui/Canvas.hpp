@@ -17,7 +17,7 @@ class Canvas : public wxGLCanvas {
     void  SetPage(Page& page);
     Page& GetPage() { return *m_page; }
 
-    Document&           GetDocument() { return GetPage().getDocument(); }
+    Document&           GetDocument() { return GetPage().GetDocument(); }
     wxCommandProcessor* GetProcessor() { return GetDocument().GetProcessor(); }
 
     void             Clear();
@@ -30,23 +30,20 @@ class Canvas : public wxGLCanvas {
     void Zoom(double scale);
 
    private:
-    bool is_deleting = false;
-    bool initialized = false;
+    bool m_isDeleting    = false;
+    bool m_isInitialized = false;
 
-    bool                   is_mouse_capture = false;
-    std::optional<wxPoint> mouse_drag_start;
-    std::optional<wxPoint> mouse_position;
-
-    wxBitmap drawBmp;
+    bool                   m_isMouseCaptured = false;
+    std::optional<wxPoint> m_mouseDragStartPosition;
+    std::optional<wxPoint> m_mouseCurrentPosition;
 
     Page*           m_page = nullptr;
     ImageScaleModel m_scaleModel;
 
-    wxGLContext* context;
-    GLuint       texture;
-    cv::UMat     uimageSrc;
-    wxImage      imageDst;
-    bool         imageModified = false;
+    wxGLContext* m_glContext;
+    GLuint       m_glTexture;
+    wxImage      m_imageDst;
+    bool         m_isImageModified = false;
 
    private:
     void UpdateScrollbars();

@@ -36,14 +36,18 @@ ToolBar::ToolBar(wxWindow* parent, wxWindowID id)
 }
 
 bool ToolBar::Enable(bool state) {
-    EnableTool(wxID_UP, state);
-    EnableTool(wxID_DOWN, state);
-    EnableTool(wxID_SAVE, state);
-    // EnableTool(wxID_OPEN, state);
-    EnableTool(wxID_ZOOM_FIT, state);
-    EnableTool(buttonID_CROP_CURR_PAGE, state);
-    EnableTool(buttonID_CROP_ALL_PAGE, state);
-    Refresh();
+    // Do not enable wxID_OPEN
+    static int needToEnable[] = {
+        wxID_UP,
+        wxID_DOWN,
+        wxID_SAVE,
+        wxID_ZOOM_FIT,
+        buttonID_CROP_ALL_PAGE,
+        buttonID_CROP_CURR_PAGE,
+    };
 
+    for (int id : needToEnable) EnableTool(id, state);
+
+    Refresh();
     return true;
 }

@@ -16,8 +16,8 @@ bool CroplinesApp::OnInit() {
     wxImage::AddHandler(new wxJPEGHandler);
     wxImage::AddHandler(new wxWEBPHandler);
 
-    frame = new MainFrame(nullptr, wxID_ANY, wxT("Croplines"), wxDefaultPosition, {900, 600});
-    frame->Show(true);
+    m_frame = new MainFrame(nullptr, wxID_ANY, wxT("Croplines"), wxDefaultPosition, {900, 600});
+    m_frame->Show(true);
 
     return true;
 }

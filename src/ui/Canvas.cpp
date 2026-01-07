@@ -13,12 +13,12 @@ Canvas::Canvas(wxWindow* parent, wxWindowID id)
     SetScrollbar(wxHORIZONTAL, -1, -1, -1);
     SetScrollbar(wxVERTICAL, -1, -1, -1);
 
-    context = new wxGLContext(this);
+    m_glContext = new wxGLContext(this);
 }
 
 Canvas::~Canvas() {
-    if (texture) glDeleteTextures(1, &texture);
-    delete context;
+    if (m_glTexture) glDeleteTextures(1, &m_glTexture);
+    delete m_glContext;
 }
 
 static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
@@ -32,26 +32,26 @@ static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
 }
 
 void Canvas::SetPage(Page& page) {
-    wxImage img = page.getImage();
+    wxImage img = page.GetImage();
     if (!img.IsOk()) {
         return;
     }
     if (IsLoaded()) {
         m_scaleModel.OnImageResize(img.GetSize());
     } else {
-        m_scaleModel = ImageScaleModel{img.GetSize(), this->GetClientSize()};
+        m_scaleModel = ImageScaleModel{img.GetSize(), GetClientSize()};
     }
     m_page = &page;
 
-    SetCurrent(*context);
-    if (texture) glDeleteTextures(1, &texture);
-    glGenTextures(1, &texture);
-    SetTextrue(texture, img.GetData(), img.GetWidth(), img.GetHeight());
+    SetCurrent(*m_glContext);
+    if (m_glTexture) glDeleteTextures(1, &m_glTexture);
+    glGenTextures(1, &m_glTexture);
+    SetTextrue(m_glTexture, img.GetData(), img.GetWidth(), img.GetHeight());
     Refresh();
 }
 
 void Canvas::Clear() {
-    if (texture) glDeleteTextures(1, &texture);
+    if (m_glTexture) glDeleteTextures(1, &m_glTexture);
     m_page = nullptr;
     Refresh();
 }
@@ -137,12 +137,12 @@ void UpdateProjection(wxSize size) {
 void Canvas::OnPaint(wxPaintEvent&) {
     wxPaintDC dc(this);
 
-    SetCurrent(*context);
+    SetCurrent(*m_glContext);
 
     // 初始化OpenGL（首次绘制时执行）
-    if (!initialized) {
+    if (!m_isInitialized) {
         InitGL();
-        initialized = true;
+        m_isInitialized = true;
     }
 
     // 清除缓冲区
@@ -162,7 +162,7 @@ void Canvas::OnPaint(wxPaintEvent&) {
         wxSize size = m_scaleModel.imageSize;
         glBegin(GL_QUADS);
         glColor3d(1.0, 1.0, 1.0);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glBindTexture(GL_TEXTURE_2D, m_glTexture);
         glTexCoord2d(0, 0);
         glVertex2d(0, 0);
         glTexCoord2d(1, 0);
@@ -197,8 +197,8 @@ void Canvas::OnPaint(wxPaintEvent&) {
 
         // draw crop lines
         std::optional<int> deleting_line;
-        if (is_deleting && mouse_position) {
-            int y = mouse_position->y;
+        if (m_isDeleting && m_mouseCurrentPosition) {
+            int y = m_mouseCurrentPosition->y;
             y     = std::lround(m_scaleModel.ReverseTransformY(y));
 
             auto search_line = m_page->SearchNearestLine(
@@ -211,18 +211,18 @@ void Canvas::OnPaint(wxPaintEvent&) {
         }
 
         glColor4d(0.30, 0.74, 0.52, 0.5);
-        for (int line : m_page->getCropLines()) {
+        for (int line : m_page->GetCropLines()) {
             if (deleting_line == line) continue;
             DrawLine(2, line);
         }
 
         // draw mouse line
-        if (mouse_position) {
-            if (is_deleting)
+        if (m_mouseCurrentPosition) {
+            if (m_isDeleting)
                 glColor4d(0.90, 0.08, 0, 0.5);
             else
                 glColor4d(0.34, 0.61, 0.84, 0.5);
-            double y = m_scaleModel.ReverseTransformY(mouse_position->y);
+            double y = m_scaleModel.ReverseTransformY(m_mouseCurrentPosition->y);
             DrawLine(2, y);
         }
     }
@@ -231,8 +231,8 @@ void Canvas::OnPaint(wxPaintEvent&) {
 }
 
 void Canvas::OnSize(wxSizeEvent& event) {
-    if (context) {
-        SetCurrent(*context);
+    if (m_glContext) {
+        SetCurrent(*m_glContext);
         UpdateProjection(GetClientSize());
     }
     if (IsLoaded()) m_scaleModel.OnWindowResize(event.GetSize());
@@ -255,33 +255,33 @@ void Canvas::OnMouseWheel(wxMouseEvent& event) {
 void Canvas::OnMouseLeftDown(wxMouseEvent& event) {
     if (!IsLoaded()) return;
 
-    if (!is_mouse_capture) {
+    if (!m_isMouseCaptured) {
         CaptureMouse();
-        is_mouse_capture = true;
+        m_isMouseCaptured = true;
     }
     // m_parent->GetParent()->SetFocus();
     SetFocus();
-    mouse_drag_start = event.GetPosition();
+    m_mouseDragStartPosition = event.GetPosition();
 }
 
 void Canvas::OnMouseLeftUp(wxMouseEvent&) {
     if (!IsLoaded()) return;
 
-    if (is_mouse_capture) {
+    if (m_isMouseCaptured) {
         ReleaseMouse();
-        is_mouse_capture = false;
+        m_isMouseCaptured = false;
     }
-    mouse_drag_start.reset();
+    m_mouseDragStartPosition.reset();
 }
 
 void Canvas::OnMouseLeftUp(wxMouseCaptureLostEvent&) {
     if (!IsLoaded()) return;
 
-    if (is_mouse_capture) {
+    if (m_isMouseCaptured) {
         ReleaseMouse();
-        is_mouse_capture = false;
+        m_isMouseCaptured = false;
     }
-    mouse_drag_start.reset();
+    m_mouseDragStartPosition.reset();
 }
 
 void Canvas::OnMouseRightDown(wxMouseEvent& event) {
@@ -317,7 +317,7 @@ void Canvas::OnMouseRightUp(wxMouseEvent& event) {
 
     int y = mousePosition.y;
     y     = std::lround(m_scaleModel.ReverseTransformY(y));
-    if (is_deleting) {
+    if (m_isDeleting) {
         int  threshold = static_cast<int>(5.0 / m_scaleModel.scale) + 1;
         auto line      = m_page->SearchNearestLine(y, FromDIP(threshold));
         if (line.has_value()) GetProcessor()->Submit(new EraseLineCommand{GetPage(), *line});
@@ -331,20 +331,20 @@ void Canvas::OnMouseMotion(wxMouseEvent& event) {
     if (!IsLoaded()) return;
 
     wxPoint mouse_drag = event.GetPosition();
-    if (mouse_drag_start && event.Dragging()) {
-        auto dr = mouse_drag - *mouse_drag_start;
+    if (m_mouseDragStartPosition && event.Dragging()) {
+        auto dr = mouse_drag - *m_mouseDragStartPosition;
         m_scaleModel.Move(dr);
-        *mouse_drag_start = mouse_drag;
+        *m_mouseDragStartPosition = mouse_drag;
         Refresh();
     }
 
     // if mouse inside image
     wxPoint mouse_position = event.GetPosition();
     if (m_scaleModel.IsInsideImage(mouse_position)) {
-        this->mouse_position = mouse_position;
+        m_mouseCurrentPosition = mouse_position;
         Refresh();
-    } else if (this->mouse_position) {
-        this->mouse_position = std::nullopt;
+    } else if (m_mouseCurrentPosition) {
+        m_mouseCurrentPosition = std::nullopt;
         Refresh();
     }
 }
@@ -378,8 +378,8 @@ void Canvas::OnKeyUp(wxKeyEvent& event) {
 
     switch (event.GetKeyCode()) {
         case 'D':
-            if (is_deleting) {
-                is_deleting = false;
+            if (m_isDeleting) {
+                m_isDeleting = false;
                 Refresh();
             }
             break;
@@ -391,8 +391,8 @@ void Canvas::OnKeyDown(wxKeyEvent& event) {
 
     switch (event.GetKeyCode()) {
         case 'D':
-            if (!is_deleting) {
-                is_deleting = true;
+            if (!m_isDeleting) {
+                m_isDeleting = true;
                 Refresh();
             }
             break;
@@ -402,13 +402,13 @@ void Canvas::OnKeyDown(wxKeyEvent& event) {
 void Canvas::OnKillFocus(wxFocusEvent& event) {
     if (!IsLoaded()) return;
 
-    if (is_deleting) {
-        is_deleting = false;
+    if (m_isDeleting) {
+        m_isDeleting = false;
         Refresh();
     }
-    if (is_mouse_capture) {
+    if (m_isMouseCaptured) {
         ReleaseMouse();
-        is_mouse_capture = false;
+        m_isMouseCaptured = false;
     }
     event.Skip();
 }

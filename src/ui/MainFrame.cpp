@@ -81,7 +81,7 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
                                      .BestSize(FromDIP(wxSize(350, 500)))
                                      .MinSize(FromDIP(wxSize(350, -1))));
 
-    m_pageListPanel = new wxListBox{this, pnid_PAGE_LIST, wxDefaultPosition, wxDefaultSize,
+    m_pageListPanel = new wxListBox{this, panelID_PAGE_LIST, wxDefaultPosition, wxDefaultSize,
                                     0,    nullptr,        wxLB_NEEDED_SB};
     m_mgr.AddPane(m_pageListPanel, wxAuiPaneInfo()
                                        .Left()
@@ -104,7 +104,7 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
 }
 
 bool MainFrame::Load(std::filesystem::path path) {
-    if (m_doc.isLoad()) {
+    if (m_doc.IsLoad()) {
         if (!Close()) return false;
     }
 
@@ -136,7 +136,7 @@ static bool ShowCloseDialog(wxWindow* parent, Document& doc) {
 }
 
 bool MainFrame::Save() {
-    if (m_doc.isLoad()) {
+    if (m_doc.IsLoad()) {
         m_doc.Save();
         return true;
     } else
@@ -144,8 +144,8 @@ bool MainFrame::Save() {
 }
 
 bool MainFrame::Close() {
-    if (m_doc.isLoad()) {
-        if (m_doc.isModified()) {
+    if (m_doc.IsLoad()) {
+        if (m_doc.IsModified()) {
             if (!ShowCloseDialog(this, m_doc)) return false;
         }
         SetFocus();  // 防止焦点在需要禁用的组件中
@@ -160,7 +160,7 @@ bool MainFrame::Close() {
 }
 
 void MainFrame::CurrentPage(std::size_t page) {
-    if (m_doc.isLoad()) {
+    if (m_doc.IsLoad()) {
         m_currentPageIdx = std::clamp(page, static_cast<std::size_t>(0), m_doc.PagesSize() - 1);
         m_toolBar->EnableTool(wxID_UP, m_currentPageIdx != 0);
         m_toolBar->EnableTool(wxID_DOWN, m_currentPageIdx != m_doc.PagesSize() - 1);
@@ -173,21 +173,21 @@ void MainFrame::CurrentPage(std::size_t page) {
 
 void MainFrame::SyncUIPageListPanel() {
     m_pageListPanel->Clear();
-    if (m_doc.isLoad() && m_doc.PagesSize() != 0) {
+    if (m_doc.IsLoad() && m_doc.PagesSize() != 0) {
         std::vector<wxString> file_names;
         file_names.reserve(m_doc.PagesSize());
         std::ranges::transform(
-            m_doc.getData().pages, std::back_inserter(file_names),
+            m_doc.GetData().pages, std::back_inserter(file_names),
             [](const std::unique_ptr<PageData>& page) { return wxString(page->path.filename()); });
 
         m_pageListPanel->Set(file_names);
     }
 }
 
-void MainFrame::SyncUIConfigPanel() { m_configPanel->SyncUI(m_doc.getConfig()); }
+void MainFrame::SyncUIConfigPanel() { m_configPanel->SyncUI(m_doc.GetConfig()); }
 
 void MainFrame::OnLoad(wxCommandEvent&) {
-    if (m_doc.isLoad() && m_doc.isModified()) {
+    if (m_doc.IsLoad() && m_doc.IsModified()) {
         if (!ShowCloseDialog(this, m_doc)) return;
     }
     wxDirDialog dir_dialog(this, wxT("选择目录"), wxEmptyString,
@@ -200,14 +200,14 @@ void MainFrame::OnLoad(wxCommandEvent&) {
 }
 
 void MainFrame::OnUndo(wxCommandEvent&) {
-    if (m_doc.isLoad()) {
+    if (m_doc.IsLoad()) {
         m_doc.GetProcessor()->Undo();
         m_canvas->Refresh();
     }
 }
 
 void MainFrame::OnRedo(wxCommandEvent&) {
-    if (m_doc.isLoad()) {
+    if (m_doc.IsLoad()) {
         m_doc.GetProcessor()->Redo();
         m_canvas->Refresh();
     }
@@ -225,7 +225,7 @@ void MainFrame::OnCropCurrPage(wxCommandEvent&) {
 }
 
 void MainFrame::OnCropAllPage(wxCommandEvent&) {
-    if (!m_doc.isLoad()) return;
+    if (!m_doc.IsLoad()) return;
 
     if (m_canvas->IsLoaded()) {
         // std::thread t([this]() {
@@ -284,7 +284,7 @@ class ChangeConfigCommand : public wxCommand {
                   << m_newValue << std::endl;
         if (m_slider && m_slider->GetValue() != m_newValue) m_slider->SetValue(m_newValue);
         m_placeToModify = m_newValue;
-        m_doc.setModified();
+        m_doc.SetModified();
         return true;
     }
 
@@ -293,7 +293,7 @@ class ChangeConfigCommand : public wxCommand {
                   << m_oldValue << std::endl;
         if (m_slider && m_slider->GetValue() != m_oldValue) m_slider->SetValue(m_oldValue);
         m_placeToModify = m_oldValue;
-        m_doc.setModified();
+        m_doc.SetModified();
         return true;
     }
 
@@ -307,18 +307,18 @@ class ChangeConfigCommand : public wxCommand {
 };
 
 void MainFrame::OnChnageCfgFilerPixSize(wxCommandEvent& event) {
-    wxWindow*       win    = FindWindowById(sldid_cfg_PIX_FILTER);
+    wxWindow*       win    = FindWindowById(sliderID_cfg_PIX_FILTER);
     SliderWithSpin* slider = wxDynamicCast(win, SliderWithSpin);
-    auto* command = new ChangeConfigCommand<int>{slider, m_doc, m_doc.getConfig().filter_noise_size,
+    auto* command = new ChangeConfigCommand<int>{slider, m_doc, m_doc.GetConfig().filter_noise_size,
                                                  event.GetInt()};
     m_doc.GetProcessor()->Submit(command);
 }
 
 void MainFrame::OnChangeCfgBorder(wxCommandEvent& event) {
-    wxWindow*       win    = FindWindowById(sldid_cfg_BORDER);
+    wxWindow*       win    = FindWindowById(sliderID_cfg_BORDER);
     SliderWithSpin* slider = wxDynamicCast(win, SliderWithSpin);
     auto*           command =
-        new ChangeConfigCommand<int>{slider, m_doc, m_doc.getConfig().border, event.GetInt()};
+        new ChangeConfigCommand<int>{slider, m_doc, m_doc.GetConfig().border, event.GetInt()};
     m_doc.GetProcessor()->Submit(command);
 }
 
@@ -329,8 +329,8 @@ void MainFrame::OnUpdateRedo(wxUpdateUIEvent&) {
     m_menuBar->Enable(wxID_REDO, m_doc.GetProcessor()->CanRedo());
 }
 void MainFrame::OnUpdateSave(wxUpdateUIEvent&) {
-    m_menuBar->Enable(wxID_SAVE, m_doc.isModified());
-    m_toolBar->EnableTool(wxID_SAVE, m_doc.isModified());
+    m_menuBar->Enable(wxID_SAVE, m_doc.IsModified());
+    m_toolBar->EnableTool(wxID_SAVE, m_doc.IsModified());
     m_toolBar->Refresh();
 }
 
@@ -352,9 +352,9 @@ wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
     EVT_MENU(wxID_EXIT, MainFrame::OnExit)
     EVT_MENU(wxID_ABOUT, MainFrame::OnAbout)
     EVT_CLOSE(MainFrame::OnExit)
-    EVT_LISTBOX(pnid_PAGE_LIST, MainFrame::OnClickListBox)
-    EVT_SLIDER(sldid_cfg_PIX_FILTER, MainFrame::OnChnageCfgFilerPixSize)
-    EVT_SLIDER(sldid_cfg_BORDER, MainFrame::OnChangeCfgBorder)
+    EVT_LISTBOX(panelID_PAGE_LIST, MainFrame::OnClickListBox)
+    EVT_SLIDER(sliderID_cfg_PIX_FILTER, MainFrame::OnChnageCfgFilerPixSize)
+    EVT_SLIDER(sliderID_cfg_BORDER, MainFrame::OnChangeCfgBorder)
 
     // Update ui
     EVT_UPDATE_UI(wxID_UNDO, MainFrame::OnUpdateUndo)
