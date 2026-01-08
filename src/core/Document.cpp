@@ -4,10 +4,13 @@
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <optional>
 #include <ranges>
+#include <string>
 #include <string_view>
+#include <utility>
 
 #include <cereal/archives/json.hpp>
 #include <cereal/cereal.hpp>

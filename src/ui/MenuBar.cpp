@@ -1,5 +1,8 @@
 #include "ui/MenuBar.hpp"
 
+#include <wx/chartype.h>
+#include <wx/defs.h>
+
 #include "ui/Defs.hpp"
 
 using namespace croplines;
@@ -9,11 +12,11 @@ MenuBar::MenuBar() : wxMenuBar() {
     m_menuFile->Append(wxID_SAVE);
     m_menuFile->AppendSeparator();
     m_menuFile->Append(buttonID_CROP_CURR_PAGE, wxT("Crop &current page"),
-                      wxT("Crop current page to subimages and save each one to "
-                          "output directory"));
+                       wxT("Crop current page to subimages and save each one to "
+                           "output directory"));
     m_menuFile->Append(buttonID_CROP_ALL_PAGE, wxT("Crop &all pages"),
-                      wxT("Crop all pages to subimages and save each one to "
-                          "output directory"));
+                       wxT("Crop all pages to subimages and save each one to "
+                           "output directory"));
     m_menuFile->AppendSeparator();
     m_menuFile->Append(wxID_CLOSE);
     m_menuFile->Append(wxID_EXIT);

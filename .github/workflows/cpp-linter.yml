@@ -35,9 +35,25 @@ on:
 
 jobs:
   cpp-linter:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANG64
+          update: true
+          install: >-
+            mingw-w64-clang64-x86_64-cmake
+            mingw-w64-clang64-x86_64-toolchain
+            mingw-w64-clang64-x86_64-cereal
+            mingw-w64-clang64-x86_64-wxwidgets3.3-common
+            mingw-w64-clang64-x86_64-wxwidgets3.3-common-libs
+            mingw-w64-clang64-x86_64-wxwidgets3.3-msw 
+            mingw-w64-clang64-x86_64-wxwidgets3.3-msw-libs
+            mingw-w64-clang64-x86_64-opencv
+            mingw-w64-clang64-x86_64-eigen3
 
       - name: Install Dependencies
         run: |
@@ -52,18 +68,9 @@ jobs:
             libglu1-mesa-dev \
             build-essential
 
-      - name: ccache
-        uses: hendrikmuhs/ccache-action@v1.2
-        with:
-          key: ${{ runner.os }}-ccache-${{ hashFiles('**/CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-ccache-
-
       - name: Generate Compilation Database
         run: |
           cmake -S . -B build \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
 
       - uses: cpp-linter/cpp-linter-action@v2

@@ -9,7 +9,6 @@ class CroplinesApp : public wxApp {
     MainFrame* m_frame;
 
    public:
-    // 这个函数将会在程序启动的时候被调用
     bool OnInit() override;
 };
 }  // namespace croplines

@@ -6,6 +6,7 @@
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <cereal/cereal.hpp>
 #include <cereal/details/helpers.hpp>
