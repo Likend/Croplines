@@ -5,11 +5,8 @@
 #include <optional>
 
 #include <wx/cmdproc.h>
-#include <wx/docview.h>
-#include <wx/xrc/xmlres.h>
 
 #include "core/DocumentData.hpp"
-#include "core/Event.hpp"
 #include "core/Page.hpp"
 
 namespace croplines {

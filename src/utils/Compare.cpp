@@ -2,7 +2,7 @@
 
 #include <cctype>
 
-std::strong_ordering Croplines::NaturalCompare(std::string_view a, std::string_view b) {
+std::strong_ordering croplines::NaturalCompare(std::string_view a, std::string_view b) {
     for (const char *i1 = a.begin(), *i2 = b.begin(); i1 != a.end() && i2 != b.end(); ++i1, ++i2) {
         if (std::isdigit(*i1) && std::isdigit(*i2)) {
             const char *ii1 = i1, *ii2 = i2;

@@ -50,7 +50,7 @@ void Document::InitializeEmptyProject() {
     };
     for (auto const& entry : fs::directory_iterator(cwd) | std::views::filter(extensionFilter)) {
         fs::path relativePath = fs::relative(entry.path(), cwd);
-        m_data->pages.push_back(std::make_unique<PageData>(relativePath));
+        m_data->pages.push_back(std::make_unique<PageData>(std::move(relativePath)));
     }
 
     // sort pages

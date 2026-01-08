@@ -4,9 +4,9 @@
 #include <wx/chartype.h>
 #include <wx/cmdproc.h>
 #include <wx/event.h>
-#include <wx/msw/window.h>
 #include <wx/object.h>
 #include <wx/panel.h>
+#include <wx/window.h>
 #include <wx/wx.h>
 
 #include "core/Document.hpp"

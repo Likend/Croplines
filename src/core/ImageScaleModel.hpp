@@ -1,5 +1,6 @@
 #pragma once
 #include <opencv2/opencv.hpp>
+#include <wx/gdicmn.h>
 #include <wx/wx.h>
 
 namespace croplines {

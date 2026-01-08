@@ -1,12 +1,14 @@
 #pragma once
 
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <set>
+#include <string>
+#include <utility>
 
 #include <cereal/cereal.hpp>
 #include <cereal/details/helpers.hpp>
-#include <cereal/types/memory.hpp>
 #include <cereal/types/set.hpp>
 #include <cereal/types/vector.hpp>
 
