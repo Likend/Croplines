@@ -13,16 +13,14 @@ endif()
 if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
     set(wxWidgets_USE_DEBUG ON)
 else()
-    if(MSVC OR WIN32)
-        set(wxWidgets_USE_STATIC ON)
-    endif()
+    set(wxWidgets_USE_STATIC ON)
 endif()
 find_package(wxWidgets REQUIRED aui core base gl)
 find_package(Eigen3 REQUIRED) # required by opencv
 find_package(OpenCV REQUIRED)
 find_package(OpenMP REQUIRED)
-find_package(cereal REQUIRED)
 include(${wxWidgets_USE_FILE})
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 file(GLOB_RECURSE SRCS src/*.cpp)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
@@ -35,12 +33,8 @@ else()
 add_executable(Croplines WIN32 ${SRCS} ${WIN32_RESOURCES})
 endif()
 target_include_directories(Croplines PRIVATE src)
-target_include_directories(Croplines PRIVATE cereal::cereal)
 target_link_libraries(Croplines ${wxWidgets_LIBRARIES})
-# OpenCV
 target_link_libraries(Croplines ${OpenCV_LIBS})
-target_include_directories(Croplines PRIVATE ${OpenCV_INCLUDE_DIRS})
-# OpenGL
 target_link_libraries(Croplines opengl32)
 
 
