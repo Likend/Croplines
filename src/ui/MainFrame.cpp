@@ -142,8 +142,8 @@ bool MainFrame::Save() {
     if (m_doc.IsLoad()) {
         m_doc.Save();
         return true;
-    } else
-        return false;
+    }
+    return false;
 }
 
 bool MainFrame::Close() {

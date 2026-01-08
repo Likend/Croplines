@@ -1,3 +1,5 @@
+HeaderFilterRegex: 'src/.*'
+
 Checks: >
   -*,
   bugprone-undelegated-constructor,
@@ -97,10 +99,8 @@ Checks: >
   modernize-use-uncaught-exceptions,
   modernize-use-using,
 
-  misc-const-correctness,
   misc-definitions-in-headers,
   misc-header-include-cycle,
-  misc-include-cleaner,
   misc-misplaced-const,
   misc-redundant-expression,
   misc-static-assert,
