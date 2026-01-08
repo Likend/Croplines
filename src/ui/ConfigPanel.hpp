@@ -1,8 +1,6 @@
 #pragma once
 
-#include <wx/event.h>
 #include <wx/notebook.h>
-#include <wx/panel.h>
 #include <wx/wx.h>
 
 #include "core/DocumentData.hpp"

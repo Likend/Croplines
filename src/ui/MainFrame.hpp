@@ -1,15 +1,14 @@
 #pragma once
 
+#include <cstddef>
+#include <filesystem>
+#include <optional>
+
 #include <wx/aui/framemanager.h>
-#include <wx/chartype.h>
-#include <wx/cmdproc.h>
-#include <wx/event.h>
-#include <wx/object.h>
-#include <wx/panel.h>
-#include <wx/window.h>
 #include <wx/wx.h>
 
 #include "core/Document.hpp"
+#include "core/Page.hpp"
 #include "ui/Canvas.hpp"
 #include "ui/ConfigPanel.hpp"
 #include "ui/MenuBar.hpp"

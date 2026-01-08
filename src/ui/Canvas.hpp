@@ -4,9 +4,11 @@
 #include <optional>
 
 #include <opencv2/opencv.hpp>
-#include <wx/cmdproc.h>
 #include <wx/glcanvas.h>
 #include <wx/wx.h>
+// include wx before gl
+#include <GL/gl.h>
+
 
 #include "core/Document.hpp"
 #include "core/ImageScaleModel.hpp"

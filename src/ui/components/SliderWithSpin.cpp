@@ -1,7 +1,6 @@
 #include "ui/components/SliderWithSpin.hpp"
 
-#include <wx/event.h>
-#include <wx/object.h>
+#include <wx/wx.h>
 
 using namespace croplines;
 

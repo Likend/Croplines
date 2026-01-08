@@ -1,6 +1,6 @@
 #pragma once
 
-#include <wx/menu.h>
+#include <wx/wx.h>  // IWYU pragma: keep
 
 namespace croplines {
 class MenuBar : public wxMenuBar {

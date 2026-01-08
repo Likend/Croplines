@@ -5,9 +5,7 @@
 #include <set>
 #include <vector>
 
-#include <wx/event.h>
-#include <wx/gdicmn.h>
-#include <wx/image.h>
+#include <wx/wx.h>
 
 #include "core/DocumentData.hpp"
 
@@ -19,11 +17,11 @@ class Page {
    public:
     ~Page() { m_image.Destroy(); }
 
-    Document&                    GetDocument() const { return m_doc; }
-    DocumentConfig&              GetConfig() const;
-    const std::filesystem::path& GetImagePath() const { return m_pageData.path; }
-    const std::set<int>&         GetCropLines() const { return m_pageData.crop_lines; }
-    wxImage&                     GetImage() { return m_image; }
+    [[nodiscard]] Document&                    GetDocument() const { return m_doc; }
+    [[nodiscard]] DocumentConfig&              GetConfig() const;
+    [[nodiscard]] const std::filesystem::path& GetImagePath() const { return m_pageData.path; }
+    [[nodiscard]] const std::set<int>& GetCropLines() const { return m_pageData.crop_lines; }
+    wxImage&                           GetImage() { return m_image; }
 
     const std::vector<wxRect>& getSelectAreas() {
         if (m_modified) CalculateSelectAreas();
@@ -35,12 +33,12 @@ class Page {
 
     bool SaveCrops();
 
-    std::optional<int> SearchNearestLine(int searchPosition, int threshold) const;
+    [[nodiscard]] std::optional<int> SearchNearestLine(int searchPosition, int threshold) const;
 
    private:
     friend class Document;
 
-    Page(Document& doc, PageData& data) : m_doc(doc), m_pageData(data) { LoadImage(); }
+    Page(Document& doc, PageData& data) : m_doc(doc), m_pageData(data) { LoadImageFromFile(); }
 
     bool m_modified = true;  // 用来提示 CalculateSelectAreas 的惰性求值
 
@@ -50,7 +48,7 @@ class Page {
     std::vector<wxRect> m_selectAreas;
     wxImage             m_image;
 
-    void LoadImage() { m_image.LoadFile(wxString(GetImagePath())); }
+    void LoadImageFromFile() { m_image.LoadFile(wxString(GetImagePath())); }
     void CalculateSelectAreas();
 };
 }  // namespace croplines

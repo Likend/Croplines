@@ -1,4 +1,5 @@
 #pragma once
+
 #include <wx/wx.h>
 
 #include "ui/MainFrame.hpp"

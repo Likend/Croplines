@@ -1,8 +1,16 @@
 #include "ui/Canvas.hpp"
 
+#include <cmath>
 #include <memory>
+#include <optional>
 
-#include <wx/cmdproc.h>
+#include <wx/glcanvas.h>
+#include <wx/wx.h>
+// Include wx before gl
+#include <Gl/gl.h>
+
+#include "core/ImageScaleModel.hpp"
+#include "core/Page.hpp"
 
 using namespace croplines;
 

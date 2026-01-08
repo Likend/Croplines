@@ -1,20 +1,23 @@
 #include "ui/MainFrame.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <filesystem>
+#include <format>
+#include <iostream>
 #include <iterator>
 #include <memory>
+#include <vector>
 
 // #include <thread>
 
 #include <wx/aboutdlg.h>
 #include <wx/aui/framemanager.h>
-#include <wx/chartype.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
-#include <wx/listbox.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
+#include <wx/wx.h>
 
 #include "core/Document.hpp"
+#include "core/DocumentData.hpp"
+#include "core/Page.hpp"
 #include "ui/Canvas.hpp"
 #include "ui/components/SliderWithSpin.hpp"
 #include "ui/ConfigPanel.hpp"

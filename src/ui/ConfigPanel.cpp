@@ -1,14 +1,10 @@
 #include "ui/ConfigPanel.hpp"
 
-#include <wx/app.h>
-#include <wx/cmdproc.h>
-#include <wx/event.h>
-#include <wx/gdicmn.h>
+#include <wx/wx.h>
 #include <wx/notebook.h>
-#include <wx/panel.h>
-#include <wx/sizer.h>
 
 #include "core/DocumentData.hpp"
+#include "ui/components/SliderWithSpin.hpp"
 #include "ui/Defs.hpp"
 
 using namespace croplines;

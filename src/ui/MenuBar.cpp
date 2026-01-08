@@ -1,7 +1,6 @@
 #include "ui/MenuBar.hpp"
 
-#include <wx/chartype.h>
-#include <wx/defs.h>
+#include <wx/wx.h>
 
 #include "ui/Defs.hpp"
 

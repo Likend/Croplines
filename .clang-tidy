@@ -1,4 +1,5 @@
-Checks: -*,
+Checks: >
+  -*,
   bugprone-undelegated-constructor,
   bugprone-argument-comment,
   bugprone-bad-signal-to-kill-thread,
@@ -144,7 +145,6 @@ Checks: -*,
   hicpp-exception-baseclass,
   hicpp-uppercase-literal-suffix,
 
-  cppcoreguidelines-macro-usage,
   cppcoreguidelines-misleading-capture-default-by-value,
   cppcoreguidelines-missing-std-forward,
   cppcoreguidelines-no-suspend-with-lock,

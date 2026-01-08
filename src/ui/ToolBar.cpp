@@ -1,6 +1,7 @@
 #include "ui/ToolBar.hpp"
 
 #include <wx/aui/auibar.h>
+#include <wx/wx.h>
 
 #include "ui/Defs.hpp"
 

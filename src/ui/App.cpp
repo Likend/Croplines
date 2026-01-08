@@ -1,6 +1,5 @@
 #include "ui/App.hpp"
 
-#include <wx/gdicmn.h>
 #include <wx/wx.h>
 
 #include "ui/MainFrame.hpp"

@@ -1,7 +1,14 @@
 #include "core/Page.hpp"
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <filesystem>
+#include <format>
+#include <limits>
 #include <optional>
 #include <set>
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 
@@ -100,7 +107,8 @@ static std::optional<wxRect> CalculateSelectArea(const cv::Mat& image, int filte
     cv::threshold(img_dst, img_dst, 0, 255, cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(img_dst, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-    int  x_min = INT_MAX, x_max = INT_MIN, y_min = INT_MAX, y_max = INT_MIN;
+    int x_min = std::numeric_limits<int>::max(), x_max = std::numeric_limits<int>::min(),
+        y_min = std::numeric_limits<int>::max(), y_max = std::numeric_limits<int>::min();
     bool has_point = false;
     for (const auto& contour : contours) {
         if (cv::contourArea(contour) >= filter_noise_size) {

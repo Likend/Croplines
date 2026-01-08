@@ -1,7 +1,9 @@
 #include "utils/Compare.hpp"
 
 #include <cctype>
+#include <compare>
 #include <iterator>
+#include <string_view>
 
 std::strong_ordering croplines::NaturalCompare(std::string_view a, std::string_view b) {
     for (const char *i1 = a.begin(), *i2 = b.begin(); i1 != a.end() && i2 != b.end(); ++i1, ++i2) {
