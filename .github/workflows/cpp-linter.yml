@@ -45,28 +45,15 @@ jobs:
           msystem: CLANG64
           update: true
           install: >-
-            mingw-w64-clang64-x86_64-cmake
-            mingw-w64-clang64-x86_64-toolchain
-            mingw-w64-clang64-x86_64-cereal
-            mingw-w64-clang64-x86_64-wxwidgets3.3-common
-            mingw-w64-clang64-x86_64-wxwidgets3.3-common-libs
-            mingw-w64-clang64-x86_64-wxwidgets3.3-msw 
-            mingw-w64-clang64-x86_64-wxwidgets3.3-msw-libs
-            mingw-w64-clang64-x86_64-opencv
-            mingw-w64-clang64-x86_64-eigen3
-
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libcereal-dev \
-            libwxgtk3.2-dev \
-            libopencv-dev \
-            libeigen3-dev \
-            libomp-dev \
-            libgl1-mesa-dev \
-            libglu1-mesa-dev \
-            build-essential
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-toolchain
+            mingw-w64-clang-x86_64-cereal
+            mingw-w64-clang-x86_64-wxwidgets3.3-common
+            mingw-w64-clang-x86_64-wxwidgets3.3-common-libs
+            mingw-w64-clang-x86_64-wxwidgets3.3-msw 
+            mingw-w64-clang-x86_64-wxwidgets3.3-msw-libs
+            mingw-w64-clang-x86_64-opencv
+            mingw-w64-clang-x86_64-eigen3
 
       - name: Generate Compilation Database
         run: |
