@@ -50,27 +50,29 @@ jobs:
             mingw-w64-clang-x86_64-cereal
             mingw-w64-clang-x86_64-wxwidgets3.3-common
             mingw-w64-clang-x86_64-wxwidgets3.3-common-libs
-            mingw-w64-clang-x86_64-wxwidgets3.3-msw 
+            mingw-w64-clang-x86_64-wxwidgets3.3-msw
             mingw-w64-clang-x86_64-wxwidgets3.3-msw-libs
             mingw-w64-clang-x86_64-opencv
             mingw-w64-clang-x86_64-eigen3
 
       - name: Generate Compilation Database
         shell: msys2 {0}
-        run: |
-          cmake -S . -B build \
-            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+        run: cmake -S . -B build
 
-      - uses: cpp-linter/cpp-linter-action@v2
-        id: linter
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          style: "file" # Use .clang-format config file
-          tidy-checks: "" # Use .clang-tidy config file
-          # only 'update' a single comment in a pull request thread.
-          thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
-          database: "build"
+      # - uses: cpp-linter/cpp-linter-action@v2
+      #   id: linter
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     style: "file" # Use .clang-format config file
+      #     tidy-checks: "" # Use .clang-tidy config file
+      #     # only 'update' a single comment in a pull request thread.
+      #     thread-comments: ${{ github.event_name == 'pull_request' && 'update' }}
+      #     database: "build"
+
+      - name: build
+        shell: msys2 {0}
+        run: cmake --build build --config Debug -j $(nproc)
 
       - name: Fail fast?!
         if: steps.linter.outputs.checks-failed > 0

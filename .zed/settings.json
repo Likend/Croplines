@@ -8,15 +8,15 @@
       "binary": {
         "arguments": [
           "--query-driver=*",
-           "--background-index",
-           "--all-scopes-completion",
-           "--completion-style=detailed",
-           "--clang-tidy",
-           "--pch-storage=memory",
-           "--compile-commands-dir=./build/",
-           "-j=12"
-        ]
-      }
-    }
-  }
+          "--background-index",
+          "--all-scopes-completion",
+          "--completion-style=detailed",
+          "--clang-tidy",
+          "--pch-storage=memory",
+          "--compile-commands-dir=./build/",
+          "-j=12",
+        ],
+      },
+    },
+  },
 }
