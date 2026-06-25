@@ -28,7 +28,7 @@ set (WIN32_RESOURCES src/resource.rc)
 endif()
 
 if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Debug"))
-add_executable(Croplines  ${SRCS} ${WIN32_RESOURCES})
+add_executable(Croplines ${SRCS} ${WIN32_RESOURCES})
 else()
 add_executable(Croplines WIN32 ${SRCS} ${WIN32_RESOURCES})
 endif()
@@ -38,11 +38,3 @@ target_link_libraries(Croplines PRIVATE ${wxWidgets_LIBRARIES})
 target_link_libraries(Croplines PRIVATE ${OpenCV_LIBS})
 target_link_libraries(Croplines PRIVATE opengl32)
 target_link_libraries(Croplines PRIVATE cereal::cereal)
-
-
-if(CMAKE_BUILD_TYPE AND (CMAKE_BUILD_TYPE STREQUAL "Release"))
-    target_link_libraries(Croplines OpenMP::OpenMP_CXX -static-libgcc
-            -static-libstdc++
-            -Wl,-Bstatic -lgomp -Wl,-Bdynamic)
-    target_link_libraries(Croplines -Wl,-Bstatic stdc++ pthread -Wl,-Bdynamic) # 解决libwinpthread-1.dll依赖问题
-endif()

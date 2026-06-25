@@ -1,6 +1,7 @@
 #include "core/Page.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <filesystem>
@@ -14,7 +15,6 @@
 
 #include "core/Document.hpp"
 #include "core/DocumentData.hpp"
-#include "utils/Asserts.hpp"
 
 using namespace croplines;
 namespace fs = std::filesystem;
@@ -107,8 +107,8 @@ static std::optional<wxRect> CalculateSelectArea(const cv::Mat& image, int filte
     cv::threshold(img_dst, img_dst, 0, 255, cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
     std::vector<std::vector<cv::Point>> contours;
     cv::findContours(img_dst, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
-    int x_min = std::numeric_limits<int>::max(), x_max = std::numeric_limits<int>::min(),
-        y_min = std::numeric_limits<int>::max(), y_max = std::numeric_limits<int>::min();
+    int  x_min = std::numeric_limits<int>::max(), x_max = std::numeric_limits<int>::min(),
+         y_min = std::numeric_limits<int>::max(), y_max = std::numeric_limits<int>::min();
     bool has_point = false;
     for (const auto& contour : contours) {
         if (cv::contourArea(contour) >= filter_noise_size) {
@@ -142,7 +142,7 @@ static std::optional<wxRect> CalculateSelectArea(const cv::Mat& image, int filte
 
 void Page::CalculateSelectAreas() {
     m_selectAreas.clear();
-    ASSERT_WITH(m_image.IsOk(), "Image not load!");
+    assert(m_image.IsOk() && "Image not load!");
     cv::Mat image(m_image.GetHeight(), m_image.GetWidth(), CV_8UC3,
                   static_cast<void*>(m_image.GetData()));
 

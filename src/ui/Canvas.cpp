@@ -35,7 +35,7 @@ static void SetTextrue(GLuint texture, void* pixels, int width, int height) {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // 解决glTexImage2D崩溃问题
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);  // 解决 glTexImage2D 崩溃问题
     glTexImage2D(GL_TEXTURE_2D, 0, 3, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 }
 
@@ -112,7 +112,7 @@ void Canvas::UpdateScrollbars() {
 }
 
 static void InitGL() {
-    // 设置OpenGL状态
+    // 设置 OpenGL 状态
     glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_TEXTURE_2D);
@@ -124,8 +124,8 @@ static void InitGL() {
     glEnable(GL_BLEND);
     // 设置混合函数
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_ALPHA_TEST);  // 启用Alpha测试
-    // 设置Alpha测试条件为大于0.05则通过
+    glEnable(GL_ALPHA_TEST);  // 启用 Alpha 测试
+    // 设置 Alpha 测试条件为大于 0.05 则通过
     glAlphaFunc(GL_GREATER, 0.05);
     // 设置逆时针索引为正面（GL_CCW/GL_CW）
     glFrontFace(GL_CW);
@@ -148,7 +148,7 @@ void Canvas::OnPaint(wxPaintEvent&) {
 
     SetCurrent(*m_glContext);
 
-    // 初始化OpenGL（首次绘制时执行）
+    // 初始化 OpenGL（首次绘制时执行）
     if (!m_isInitialized) {
         InitGL();
         m_isInitialized = true;
@@ -157,16 +157,16 @@ void Canvas::OnPaint(wxPaintEvent&) {
     // 清除缓冲区
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // 设置正交投影（模拟视口坐标系）
-    UpdateProjection(GetClientSize());
-
-    // 设置投影（透视投影）
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    glTranslated(GetScaleModel().offset.x, GetScaleModel().offset.y, 0);
-    glScaled(GetScaleModel().scale, GetScaleModel().scale, 1.0);
-
     if (IsLoaded()) {
+        // 设置正交投影（模拟视口坐标系）
+        UpdateProjection(GetClientSize());
+
+        // 设置投影（透视投影）
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        glTranslated(GetScaleModel().offset.x, GetScaleModel().offset.y, 0);
+        glScaled(GetScaleModel().scale, GetScaleModel().scale, 1.0);
+
         // 绑定纹理
         wxSize size = GetScaleModel().imageSize;
         glBegin(GL_QUADS);

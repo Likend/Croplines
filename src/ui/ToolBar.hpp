@@ -2,6 +2,7 @@
 
 #include <wx/aui/auibar.h>
 #include <wx/wx.h>
+
 namespace croplines {
 class ToolBar final : public wxAuiToolBar {
    public:

@@ -7,7 +7,7 @@
     "clangd": {
       "binary": {
         "arguments": [
-          "--query-driver=D:/MSYS2/ucrt64/bin/g++.exe",
+          "--query-driver=*",
            "--background-index",
            "--all-scopes-completion",
            "--completion-style=detailed",

@@ -1,6 +1,7 @@
 #include "core/Document.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
@@ -68,7 +69,7 @@ void Document::InitializeEmptyProject() {
 }
 
 bool Document::Save() {
-    ASSERT_WITH(IsLoad(), "Project not loaded!");
+    assert(IsLoad() && "Project not loaded!");
     const fs::path prj_path = cwd / PROJECT_FILE_NAME;
 
     std::ofstream             file(prj_path);
@@ -79,7 +80,7 @@ bool Document::Save() {
 }
 
 bool Document::Close() {
-    ASSERT_WITH(IsLoad(), "Project not loaded!");
+    assert(IsLoad() && "Project not loaded!");
     m_modified = false;
     m_data.reset();
     m_processor->ClearCommands();
@@ -89,13 +90,13 @@ bool Document::Close() {
 void Document::SetModified(bool modified) { m_modified = modified; }
 
 Page Document::LoadPage(size_t index) {
-    ASSERT_WITH(index < PagesSize(), "indx out of range");
+    assert(index < PagesSize() && "indx out of range");
     auto& pageData = *m_data->pages[index];
     return Page{*this, pageData};
 }
 
 bool Document::SaveAllCrops() {
-    ASSERT_WITH(IsLoad(), "Project not loaded!");
+    assert(IsLoad() && "Project not loaded!");
     bool success = true;
     for (size_t i = 0; i < PagesSize(); i++) {
         Page page = LoadPage(i);
