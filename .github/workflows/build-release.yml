@@ -1,0 +1,61 @@
+name: Build Release
+on:
+  push:
+    tags:
+      - v*
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Release
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: CLANG64
+          update: true
+          install: >-
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-toolchain
+            mingw-w64-clang-x86_64-cereal
+            mingw-w64-clang-x86_64-wxwidgets3.3-common
+            mingw-w64-clang-x86_64-wxwidgets3.3-common-libs
+            mingw-w64-clang-x86_64-wxwidgets3.3-msw
+            mingw-w64-clang-x86_64-wxwidgets3.3-msw-libs
+            mingw-w64-clang-x86_64-opencv
+            mingw-w64-clang-x86_64-eigen3
+            zip
+
+      - name: Generate Compilation Database
+        shell: msys2 {0}
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        shell: msys2 {0}
+        run: cmake --build build --config Release -j $(nproc)
+
+      - name: Install
+        shell: msys2 {0}
+        run: cmake --install build --prefix ./dist
+
+      - name: Pack Artifacts
+        shell: msys2 {0}
+        run: |
+          cd dist/bin
+          zip -r ../../croplines-${{ github.ref_name }}-windows.zip ./*
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: croplines-${{ github.ref_name }}-windows.zip
