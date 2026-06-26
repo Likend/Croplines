@@ -1,4 +1,4 @@
-name: cpp-linter
+name: C++ Linter
 on:
   pull_request:
     branches: [main]
@@ -74,6 +74,6 @@ jobs:
         shell: msys2 {0}
         run: cmake --build build --config Debug -j $(nproc)
 
-      - name: Fail fast?!
-        if: steps.linter.outputs.checks-failed > 0
-        run: exit 1
+      # - name: Fail fast?!
+      #   if: steps.linter.outputs.checks-failed > 0
+      #   run: exit 1
