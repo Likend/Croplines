@@ -3,16 +3,19 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
+#include <cstdlib>
 #include <filesystem>
 #include <format>
+#include <generator>
 #include <limits>
 #include <optional>
+#include <ranges>
 #include <set>
 #include <vector>
 
-#include <opencv2/opencv.hpp>
+#include <wx/gdicmn.h>
 
+#include "core/algorithm/Image.hpp"
 #include "core/Document.hpp"
 #include "core/DocumentData.hpp"
 
@@ -96,70 +99,56 @@ std::optional<int> Page::SearchNearestLine(int searchPosition, int threshold) co
     return std::nullopt;
 }
 
-/*自动选择黑色像素区域
-    filter_noise_size: 忽略黑像素的大小
-    expand_size: 留边空白大小
-*/
-static std::optional<wxRect> CalculateSelectArea(const cv::Mat& image, int filter_noise_size,
-                                                 int expand_size, int base_line) {
-    cv::Mat img_dst;
-    cv::cvtColor(image, img_dst, cv::COLOR_RGB2GRAY);
-    cv::threshold(img_dst, img_dst, 0, 255, cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
-    std::vector<std::vector<cv::Point>> contours;
-    cv::findContours(img_dst, contours, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_NONE);
+static std::optional<wxRect> CalculateSelectArea(const wxImage& image, int filter_noise_size,
+                                                 int base_line) {
+    auto gray_data = ConvertToGrayscale(image.GetData(), image.GetWidth(), image.GetHeight());
+
+    auto binary_data = ThresholdOstu(gray_data.get(), image.GetWidth(), image.GetHeight());
+
+    auto fill_areas =
+        // 链式处理
+        FloodFillArea(binary_data.get(), image.GetWidth(), image.GetHeight()) |
+        // 忽略小块的黑像素
+        std::views::filter(
+            [filter_noise_size](auto area) { return area.area > filter_noise_size; }) |
+        // 边缘触碰：如果靠边则忽略
+        std::views::filter([&image](auto area) {
+            const auto& r = area.range;
+            return r.GetLeft() > 0 && r.GetRight() < image.GetWidth() - 1 &&  //
+                   r.GetTop() > 0 && r.GetBottom() < image.GetHeight() - 1;
+        });
+
     int  x_min = std::numeric_limits<int>::max(), x_max = std::numeric_limits<int>::min(),
          y_min = std::numeric_limits<int>::max(), y_max = std::numeric_limits<int>::min();
     bool has_point = false;
-    for (const auto& contour : contours) {
-        if (cv::contourArea(contour) >= filter_noise_size) {
-            cv::Rect r = cv::boundingRect(contour);
-
-            // 边缘触碰逻辑（如果靠边则忽略）
-            if (r.x == 0 || r.y == 0 || (r.x + r.width) >= image.cols ||
-                (r.y + r.height) >= image.rows) {
-                continue;
-            }
-            // 更新全局最小/最大边界
-            x_min     = std::min(x_min, r.x);
-            y_min     = std::min(y_min, r.y);
-            x_max     = std::max(x_max, r.x + r.width);
-            y_max     = std::max(y_max, r.y + r.height);
-            has_point = true;
-        }
+    for (const FillArea& fill_area : fill_areas) {
+        x_min     = std::min(fill_area.range.GetLeft(), x_min);
+        x_max     = std::max(fill_area.range.GetRight(), x_max);
+        y_min     = std::min(fill_area.range.GetTop(), y_min);
+        y_max     = std::max(fill_area.range.GetBottom(), y_max);
+        has_point = true;
     }
-    if (!has_point) return std::nullopt;
 
-    int l = x_min - expand_size;
-    int t = y_min - expand_size + base_line;
-    int r = x_max + expand_size;
-    int b = y_max + expand_size + base_line;
-    if (l < 0) l = 0;
-    if (t < 0) t = 0;
-    if (r > image.cols) r = image.cols;
-    if (b > image.rows + base_line) b = image.rows + base_line;
-    return wxRect{wxPoint{l, t}, wxPoint{r, b}};
+    if (!has_point) return std::nullopt;
+    return wxRect{wxPoint{x_min, y_min + base_line}, wxPoint{x_max, y_max + base_line}};
 }
 
 void Page::CalculateSelectAreas() {
     m_selectAreas.clear();
     assert(m_image.IsOk() && "Image not load!");
-    cv::Mat image(m_image.GetHeight(), m_image.GetWidth(), CV_8UC3,
-                  static_cast<void*>(m_image.GetData()));
 
-    int prev_line = 0;
-
-    auto invokeCalculation = [this, &image](int line, int prev_line) {
-        cv::Mat sub_image = image.rowRange(prev_line, line);
-        auto    area = CalculateSelectArea(sub_image, GetConfig().filter_noise_size, 0, prev_line);
-        if (area) m_selectAreas.push_back(*area);
+    auto concat_view = [&]() -> std::generator<int> {
+        for (int x : GetCropLines()) co_yield x;
+        co_yield m_image.GetHeight();
     };
-
-    for (int line : GetCropLines()) {
-        invokeCalculation(line, prev_line);
+    int prev_line = 0;
+    for (int line : concat_view()) {
+        wxImage subImage = m_image.GetSubImage(
+            wxRect{wxPoint{0, prev_line}, wxSize{m_image.GetWidth(), line - prev_line}});
+        auto area = CalculateSelectArea(subImage, GetConfig().filter_noise_size, prev_line);
+        if (area) m_selectAreas.push_back(*area);
         prev_line = line;
     }
-    std::int32_t line = image.rows;
-    invokeCalculation(line, prev_line);
 
     m_modified = false;
 }

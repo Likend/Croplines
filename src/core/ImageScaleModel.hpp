@@ -1,5 +1,4 @@
 #pragma once
-#include <opencv2/opencv.hpp>
 #include <wx/gdicmn.h>
 #include <wx/wx.h>
 
@@ -37,8 +36,6 @@ class ImageScaleModel {
     [[nodiscard]] double GetScaleSuitesPage() const;
     [[nodiscard]] double GetScaleSuitesWidth() const;
     [[nodiscard]] double GetScaleSuitesHeight() const;
-
-    [[nodiscard]] cv::Mat GetTransformMatrix() const;
 
     [[nodiscard]] wxRealPoint Transform(wxRealPoint point) const;
     [[nodiscard]] double      TransformX(double x) const { return scale * x + offset.x; }

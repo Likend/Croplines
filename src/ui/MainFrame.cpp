@@ -13,6 +13,7 @@
 
 #include <wx/aboutdlg.h>
 #include <wx/aui/framemanager.h>
+#include <wx/log.h>
 #include <wx/wx.h>
 
 #include "core/Document.hpp"
@@ -269,6 +270,7 @@ void MainFrame::OnClickListBox(wxCommandEvent& event) {
     }
 }
 
+namespace {
 template <typename T>
 class ChangeConfigCommand : public wxCommand {
    public:
@@ -308,6 +310,7 @@ class ChangeConfigCommand : public wxCommand {
     T  m_newValue;
     T  m_oldValue;
 };
+}  // namespace
 
 void MainFrame::OnChnageCfgFilerPixSize(wxCommandEvent& event) {
     wxWindow*       win    = FindWindowById(sliderID_cfg_PIX_FILTER);

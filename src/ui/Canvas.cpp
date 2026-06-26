@@ -300,6 +300,7 @@ void Canvas::OnMouseRightDown(wxMouseEvent& event) {
     event.Skip();
 }
 
+namespace {
 struct EraseLineCommand final : public wxCommand {
     Page& page;
     int   line;
@@ -317,6 +318,7 @@ struct InsertLineCommand final : public wxCommand {
     bool Do() override { return page.InsertLine(line); }
     bool Undo() override { return page.EraseLine(line); }
 };
+}  // namespace
 
 void Canvas::OnMouseRightUp(wxMouseEvent& event) {
     if (!IsLoaded()) return;
