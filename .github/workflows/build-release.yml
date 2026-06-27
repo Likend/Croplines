@@ -17,18 +17,17 @@ jobs:
       - name: Setup MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          msystem: CLANG64
+          msystem: UCRT64
           update: true
           install: >-
-            mingw-w64-clang-x86_64-cmake
-            mingw-w64-clang-x86_64-toolchain
-            mingw-w64-clang-x86_64-cereal
-            mingw-w64-clang-x86_64-wxwidgets3.3-common
-            mingw-w64-clang-x86_64-wxwidgets3.3-common-libs
-            mingw-w64-clang-x86_64-wxwidgets3.3-msw
-            mingw-w64-clang-x86_64-wxwidgets3.3-msw-libs
-            mingw-w64-clang-x86_64-opencv
-            mingw-w64-clang-x86_64-eigen3
+            mingw-w64-ucrt-x86_64-cmake
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-cereal
+            mingw-w64-ucrt-x86_64-wxwidgets3.3-common
+            mingw-w64-ucrt-x86_64-wxwidgets3.3-common-libs
+            mingw-w64-ucrt-x86_64-wxwidgets3.3-msw
+            mingw-w64-ucrt-x86_64-wxwidgets3.3-msw-libs
+            mingw-w64-ucrt-x86_64-tbb
             zip
 
       - name: Generate Compilation Database

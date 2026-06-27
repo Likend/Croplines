@@ -80,10 +80,6 @@ double ImageScaleModel::GetScaleSuitesPage() const {
     return std::min(GetScaleSuitesWidth(), GetScaleSuitesHeight());
 }
 
-cv::Mat ImageScaleModel::GetTransformMatrix() const {
-    return (cv::Mat_<double>(2, 3) << scale, 0, offset.x, 0, scale, offset.y);
-}
-
 bool ImageScaleModel::IsInsideImage(wxRealPoint worldPoint) const {
     wxRealPoint imagePoint = ReverseTransform(worldPoint);
     return 0 <= imagePoint.x && imagePoint.x <= imageSize.GetWidth() && 0 <= imagePoint.y &&

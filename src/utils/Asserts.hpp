@@ -2,10 +2,8 @@
 
 #include <cassert>
 
-#ifndef NDEBUG
-#define UNREACHABLE() assert(false && "Unreachable!");
-#else
-
+#ifdef NDEBUG
 #define UNREACHABLE() __builtin_unreachable()
-
+#else
+#define UNREACHABLE() assert(false && "Unreachable!");
 #endif
