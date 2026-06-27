@@ -3,13 +3,17 @@
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
+#include <fstream>
+#include <ios>
 #include <limits>
 #include <optional>
 #include <ranges>
 #include <set>
+#include <string>
 #include <vector>
 
 #include <wx/gdicmn.h>

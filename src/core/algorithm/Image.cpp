@@ -75,10 +75,10 @@ std::unique_ptr<uint8_t[]> croplines::ThresholdOstu(const uint8_t* gray_img, int
 std::unique_ptr<uint8_t[]> croplines::ConvertToGrayscale(const uint8_t* img, int width,
                                                          int height) {
     size_t total_pixels = static_cast<size_t>(width) * height;
-    auto   gray_img     = std::make_unique<uint8_t[]>(total_pixels);
 
-    auto pixels = std::span(img, total_pixels) | std::views::chunk(3);
+    auto pixels = std::span(img, total_pixels * 3) | std::views::chunk(3);
 
+    auto gray_img = std::make_unique<uint8_t[]>(total_pixels);
     // for (size_t i = 0; i < total_pixels; i++) {
     //     uint8_t r = img[i * 3];
     //     uint8_t g = img[i * 3 + 1];
