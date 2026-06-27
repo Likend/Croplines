@@ -1,5 +1,6 @@
 #include "core/Page.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>

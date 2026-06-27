@@ -126,10 +126,10 @@ std::generator<croplines::FillArea> croplines::FloodFillArea(const uint8_t* bina
                     area++;
 
                     // 更新当前连通域的局部边界
-                    if (c.x < c_xmin) c_xmin = c.x;
-                    if (c.x > c_xmax) c_xmax = c.x;
-                    if (c.y < c_ymin) c_ymin = c.y;
-                    if (c.y > c_ymax) c_ymax = c.y;
+                    c_xmin = std::min(c.x, c_xmin);
+                    c_xmax = std::max(c.x, c_xmax);
+                    c_ymin = std::min(c.y, c_ymin);
+                    c_ymax = std::max(c.y, c_ymax);
 
                     // 遍历邻域
                     const static wxPoint ds[] = {{0, -1}, {0, 1}, {-1, 0}, {1, 0}};
