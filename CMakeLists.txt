@@ -19,6 +19,7 @@ endif()
 
 find_package(wxWidgets REQUIRED aui core base gl)
 find_package(cereal REQUIRED)
+find_package(TBB REQUIRED)
 include(${wxWidgets_USE_FILE})
 
 file(GLOB_RECURSE SRCS src/*.cpp)
@@ -36,6 +37,7 @@ target_include_directories(Croplines PRIVATE src)
 target_link_libraries(Croplines PRIVATE
     wxWidgets::wxWidgets
     cereal::cereal
+    TBB::tbb
     opengl32
     stdc++exp # experimental symbols for the C++23
 )

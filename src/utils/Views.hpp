@@ -4,21 +4,20 @@
 #include <ranges>
 
 namespace croplines {
+// Alternative to C++26 std::ranges::concat_view
 template <std::ranges::view View1, std::ranges::view View2>
-    requires requires(View1 view1, View2 view2) {
-        std::same_as<std::ranges::range_value_t<View1>, std::ranges::range_value_t<View2>>;
-        // std::same_as<
-        //     typename std::iterator_traits<decltype(std::ranges::begin(view1))>::value_type,
-        //     typename std::iterator_traits<decltype(std::ranges::begin(view2))>::value_type>;
-        // std::same_as<typename
-        // std::iterator_traits<decltype(std::ranges::begin(view1))>::pointer,
-        //              typename
-        //              std::iterator_traits<decltype(std::ranges::begin(view2))>::pointer>;
-        // std::same_as<typename
-        // std::iterator_traits<decltype(std::ranges::begin(view1))>::reference,
-        //              typename
-        //              std::iterator_traits<decltype(std::ranges::begin(view2))>::reference>;
-    }
+    requires std::same_as<std::ranges::range_value_t<View1>, std::ranges::range_value_t<View2>>
+// std::same_as<
+//     typename std::iterator_traits<decltype(std::ranges::begin(view1))>::value_type,
+//     typename std::iterator_traits<decltype(std::ranges::begin(view2))>::value_type>;
+// std::same_as<typename
+// std::iterator_traits<decltype(std::ranges::begin(view1))>::pointer,
+//              typename
+//              std::iterator_traits<decltype(std::ranges::begin(view2))>::pointer>;
+// std::same_as<typename
+// std::iterator_traits<decltype(std::ranges::begin(view1))>::reference,
+//              typename
+//              std::iterator_traits<decltype(std::ranges::begin(view2))>::reference>;
 class ConcatView : public std::ranges::view_base {
     View1 view1;
     View2 view2;
