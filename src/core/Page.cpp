@@ -1,12 +1,10 @@
 #include "core/Page.hpp"
 
-#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <cstdlib>
 #include <filesystem>
 #include <format>
-#include <generator>
 #include <limits>
 #include <optional>
 #include <ranges>
@@ -18,6 +16,7 @@
 #include "core/algorithm/Image.hpp"
 #include "core/Document.hpp"
 #include "core/DocumentData.hpp"
+#include "utils/Views.hpp"
 
 using namespace croplines;
 namespace fs = std::filesystem;
@@ -137,12 +136,14 @@ void Page::CalculateSelectAreas() {
     m_selectAreas.clear();
     assert(m_image.IsOk() && "Image not load!");
 
-    auto concat_view = [&]() -> std::generator<int> {
-        for (int x : GetCropLines()) co_yield x;
-        co_yield m_image.GetHeight();
-    };
+    // auto concat_view = [&]() -> std::generator<int> {
+    //     for (int x : GetCropLines()) co_yield x;
+    //     co_yield m_image.GetHeight();
+    // };
+    auto concat_view =
+        ConcatView(std::views::all(GetCropLines()), std::views::single(m_image.GetHeight()));
     int prev_line = 0;
-    for (int line : concat_view()) {
+    for (int line : concat_view) {
         wxImage subImage = m_image.GetSubImage(
             wxRect{wxPoint{0, prev_line}, wxSize{m_image.GetWidth(), line - prev_line}});
         auto area = CalculateSelectArea(subImage, GetConfig().filter_noise_size, prev_line);

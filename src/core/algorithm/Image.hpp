@@ -1,6 +1,5 @@
 #include <cstddef>
 #include <cstdint>
-#include <generator>
 #include <memory>
 
 #include <wx/gdicmn.h>
