@@ -4,6 +4,7 @@ project(Croplines)
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/source-charset:utf-8>")
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS "Debug" "Release" "RelWithDebInfo" "MinSizeRel")
@@ -20,6 +21,7 @@ endif()
 find_package(wxWidgets REQUIRED aui core base gl)
 find_package(cereal REQUIRED)
 find_package(TBB REQUIRED)
+find_package(OpenGL REQUIRED)
 include(${wxWidgets_USE_FILE})
 
 file(GLOB_RECURSE SRCS src/*.cpp)
@@ -38,7 +40,7 @@ target_link_libraries(Croplines PRIVATE
     wxWidgets::wxWidgets
     cereal::cereal
     TBB::tbb
-    opengl32
+    OpenGL::GL
     stdc++exp # experimental symbols for the C++23
 )
 

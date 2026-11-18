@@ -32,7 +32,7 @@ MainFrame::MainFrame(wxWindow* parent, wxWindowID id, const wxString& title, con
                      const wxSize& size)
     : wxFrame(parent, id, title, pos) {
     SetClientSize(FromDIP(size));
-    SetIcon(wxICON(MAIN_ICON));
+    // SetIcon(wxICON(MAIN_ICON));
     SetMenuBar(m_menuBar);
 
     m_mgr.SetManagedWindow(this);
@@ -256,7 +256,7 @@ void MainFrame::OnAbout(wxCommandEvent&) {
 #include "License.hpp"
     wxAboutDialogInfo aboutInfo;
     aboutInfo.SetName(wxT("Croplines"));
-    aboutInfo.SetIcon(wxICON(MAIN_ICON));
+    // aboutInfo.SetIcon(wxICON(MAIN_ICON));
     aboutInfo.AddDeveloper(wxT("Likend"));
     aboutInfo.SetWebSite(wxT("https://github.com/Likend/Croplines"));
     aboutInfo.SetCopyright(wxT("(C) 2024-2026"));
