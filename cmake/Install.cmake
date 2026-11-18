@@ -3,7 +3,7 @@ install(CODE [[
     if(POLICY CMP0207)
         cmake_policy(SET CMP0207 NEW)
     endif()
-]] INITIAL_CODE)
+]])
 
 install(TARGETS Croplines RUNTIME)
 
