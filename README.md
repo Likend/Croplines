@@ -1,10 +1,10 @@
 # Croplines
 
-Croplines是一个用于制作曲谱同步视频的小工具，它通过GUI图形界面与用户进行交互，以高效地裁剪乐谱。
+Croplines 是一个用于制作曲谱同步视频的小工具，它通过 GUI 图形界面与用户进行交互，以高效地裁剪乐谱。
 
 ## 使用方法
 
-Croplines目前已经实现了裁剪、可缩放和可移动的画布显示图片，以及项目保存的功能。
+Croplines 目前已经实现了裁剪、可缩放和可移动的画布显示图片，以及项目保存的功能。
 
 通过使用鼠标滚轮，可以对图片进行放大或缩小操作。同时，通过鼠标拖拽，可以移动图片，以便更方便地观察乐谱的局部细节，避免裁剪到线谱或乐谱标记。
 
@@ -17,3 +17,11 @@ Croplines目前已经实现了裁剪、可缩放和可移动的画布显示图�
 ## 编译
 
 建议使用 MSYS2 环境。安装 wxWidgets 与 Cereal 库。
+
+本项目使用 cmake 构建，参考编译命令为：
+
+```sh
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=<path-to-install>
+cmake --build build --config Release
+cmake --install build
+```
