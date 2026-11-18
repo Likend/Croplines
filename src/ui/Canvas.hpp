@@ -6,7 +6,11 @@
 #include <wx/glcanvas.h>
 #include <wx/wx.h>
 // include wx before gl
+#ifdef __APPLE__
+#include <OpenGL/gl.h>
+#else
 #include <GL/gl.h>
+#endif
 
 #include "core/Document.hpp"
 #include "core/ImageScaleModel.hpp"
