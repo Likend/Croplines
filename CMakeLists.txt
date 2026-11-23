@@ -18,11 +18,16 @@ else()
     set(wxWidgets_USE_STATIC ON)
 endif()
 
-find_package(wxWidgets REQUIRED aui core base gl)
+find_package(wxWidgets CONFIG REQUIRED COMPONENTS aui core base gl)
 find_package(cereal REQUIRED)
 find_package(TBB REQUIRED)
 find_package(OpenGL REQUIRED)
-include(${wxWidgets_USE_FILE})
+
+# wxWidgets' CMake package exports imported targets directly. Keep support for
+# older module-based packages when they provide the legacy use file.
+if(wxWidgets_USE_FILE)
+    include(${wxWidgets_USE_FILE})
+endif()
 
 file(GLOB_RECURSE SRCS src/*.cpp)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
