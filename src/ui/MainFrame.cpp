@@ -7,6 +7,7 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <utility>
 #include <vector>
 
 // #include <thread>
@@ -24,7 +25,6 @@
 #include "ui/ConfigPanel.hpp"
 #include "ui/Defs.hpp"
 #include "ui/ToolBar.hpp"
-#include "utils/Asserts.hpp"
 
 using namespace croplines;
 
@@ -135,7 +135,7 @@ static bool ShowCloseDialog(wxWindow* parent, Document& doc) {
         case wxID_CANCEL:
             return false;
         default:
-            UNREACHABLE();
+            std::unreachable();
     }
 }
 

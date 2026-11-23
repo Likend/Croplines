@@ -87,7 +87,7 @@ std::unique_ptr<uint8_t[]> croplines::ConvertToGrayscale(const uint8_t* img, int
     //     uint8_t gray = (r * 77 + g * 150 + b * 29) / 256;
     //     gray_img[i]  = gray;
     // }
-    std::transform(std::execution::par,           // use ranges version in C++ 26
+    std::transform(std::execution::par,           // to use ranges version in C++ 26
                    pixels.begin(), pixels.end(),  // Input range
                    gray_img.get(),                // Output range
                    [](auto chunk) -> uint8_t {

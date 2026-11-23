@@ -18,7 +18,6 @@
 
 #include "core/DocumentData.hpp"
 #include "core/Page.hpp"
-#include "utils/Asserts.hpp"
 #include "utils/Compare.hpp"
 
 using namespace croplines;
@@ -58,12 +57,9 @@ void Document::InitializeEmptyProject() {
     }
 
     // sort pages
-    auto pred = [](const std::unique_ptr<PageData>& pageData) {
-        return pageData->path.filename().string();
-    };
-    std::ranges::sort(
-        m_data->pages,
-        [](std::string_view s1, std::string_view s2) { return NaturalCompare(s1, s2) < 0; }, pred);
+    auto pred = [](const auto& page) { return page->path.filename().string(); };
+    auto comp = [](std::string_view s1, std::string_view s2) { return NaturalCompare(s1, s2) < 0; };
+    std::ranges::sort(m_data->pages, comp, pred);
 
     SetModified();
 }
